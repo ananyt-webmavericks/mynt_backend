@@ -27,9 +27,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-kmd6gris)5#tl(s1s#yhbn$eolwbjzo=8)s7#@x*g_hox2%dhi'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['ec2-3-110-160-34.ap-south-1.compute.amazonaws.com','3.110.160.34','https://mynt-dev.webmavericks.org']
 
 
 # Application definition
