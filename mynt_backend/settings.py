@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-kmd6gris)5#tl(s1s#yhbn$eolwbjzo=8)s7#@x*g_hox2%dhi
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['ec2-3-110-160-34.ap-south-1.compute.amazonaws.com','3.110.160.34','mynt-dev.webmavericks.org','127.0.0.1']
+ALLOWED_HOSTS = ['ec2-3-110-160-34.ap-south-1.compute.amazonaws.com','3.110.160.34','mynt-dev.webmavericks.org','127.0.0.1','localhost']
 
 
 # Application definition
@@ -122,9 +122,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 CORS_ALLOWED_ORIGINS = [
     "https://mynt-dev.webmavericks.org",
+    "http://mynt-dev.webmavericks.org",
     "http://127.0.0.1:3000",
+    "http://localhost:3000",
     "http://127.0.0.1:3001",
-    "https://mynt-ui.webmavericks.org"
+    "http://localhost:3001",
+    "https://mynt-ui.webmavericks.org",
+    "http://mynt-ui.webmavericks.org"
 ]
 
 CORS_ORIGIN_ALLOW_ALL = False
