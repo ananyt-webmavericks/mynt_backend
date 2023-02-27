@@ -80,7 +80,9 @@ class EmailVerifyView(APIView):
                 if(otp == user.email_otp):
                     user.email_verified = True
                     user.save()
-                    return Response({"status":"true","message":"OTP verified!"},status=status.HTTP_200_OK)
+                    updated_user = MyntUsers.objects.get(email=request.data.get('email'))
+                    serializer = MyntUsersSerializer(updated_user, many=False)
+                    return Response({"status":"true","message":"OTP verified!","data":serializer.data},status=status.HTTP_200_OK)
                 return Response({"status":"false","message":"Invalid OTP!"},status=status.HTTP_200_OK)
             return Response({"status":"false","message":"otp can not be empty!"},status=status.HTTP_400_BAD_REQUEST)
         except MyntUsers.DoesNotExist:
