@@ -45,7 +45,17 @@ INSTALLED_APPS = [
     'corsheaders',
     'mynt_users',
     'investor_consent',
-    'investor_kyc'
+    'investor_kyc',
+    'company',
+    'campaign',
+    'deal_terms',
+    'documents',
+    'faqs',
+    'highlights',
+    'people',
+    'press',
+    'rewards',
+    'deal_type'
 ]
 
 MIDDLEWARE = [
