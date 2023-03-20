@@ -21,5 +21,7 @@ urlpatterns = [
     path('api/users/', include("mynt_users.urls")),
     path('api/investor-consent/',include("investor_consent.urls")),
     path('api/investor-kyc/',include("investor_kyc.urls")),
-    path('api/company/',include("company.urls"))
+    path('api/company/',include("company.urls")),
+    path('api/campaign/',include("campaign.urls"))
+    path('api/deal_type/',include("deal_type.urls"))
 ]

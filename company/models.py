@@ -2,6 +2,12 @@ from django.db import models
 
 from mynt_users.models import MyntUsers
 
+
+STATUS = (
+    ("ACTIVE","ACTIVE"),
+    ("INACTIVE","INACTIVE")
+)
+
 # Create your models here.
 
 class Company(models.Model):
@@ -19,7 +25,7 @@ class Company(models.Model):
     reason_for_community_round = models.TextField(default=None)
     reason_for_mynt = models.TextField(default=None)
     existing_commitments = models.TextField(default=None)
-    company_pitch = models.TextField()
+    company_pitch = models.TextField(default=None)
     country = models.CharField(max_length=100,null=True)
     state = models.CharField(max_length=100,null=True)
     city = models.CharField(max_length=100,null=True)
@@ -34,5 +40,6 @@ class Company(models.Model):
     sector = models.CharField(max_length=50,null=True)
     invested_so_far = models.CharField(max_length=12,null=True)
     number_of_employees = models.CharField(max_length = 5, null=True)
+    status = models.CharField(choices=STATUS, max_length=20, default="INACTIVE")
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField(auto_now=True)
