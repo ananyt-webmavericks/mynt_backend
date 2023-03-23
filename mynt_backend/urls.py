@@ -22,6 +22,13 @@ urlpatterns = [
     path('api/investor-consent/',include("investor_consent.urls")),
     path('api/investor-kyc/',include("investor_kyc.urls")),
     path('api/company/',include("company.urls")),
-    path('api/campaign/',include("campaign.urls"))
-    path('api/deal_type/',include("deal_type.urls"))
+    path('api/campaign/',include("campaign.urls")),
+    path('api/deal_type/',include("deal_type.urls")),
+    path('api/faqs/',include("faqs.urls")),
+    path('api/highlights/',include("highlights.urls")),
+    path('api/people/',include("people.urls")),
+    path('api/press/',include("press.urls")),
+    path('api/rewards/',include("rewards.urls")),
+    path('api/deal_terms/',include("deal_terms.urls")),
+    path('api/documents/',include("documents.urls"))
 ]

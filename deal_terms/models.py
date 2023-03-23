@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 
 from campaign.models import Campaign
+from deal_type.models import DealType
 
 DEAL_TYPE = (
     ("CSOP","CSOP"),
@@ -14,7 +15,7 @@ DEAL_TYPE = (
 class DealTerms(models.Model):
     id = models.BigAutoField(primary_key=True)
     campaign_id = models.ForeignKey(Campaign , on_delete=models.CASCADE)
-    security_type = models.CharField(choices=DEAL_TYPE,max_length=20,default="CSOP")
+    security_type = models.ForeignKey(DealType, on_delete=models.CASCADE)
     discount = models.CharField(max_length=2)
     valuation_cap = models.CharField(max_length=12)
     min_subscription = models.CharField(max_length=12)
