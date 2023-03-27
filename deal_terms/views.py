@@ -11,10 +11,13 @@ from .models import DealTerms
 from deal_type.models import DealType
 from .serializers import DealTermsSerializer
 from mynt_users.models import MyntUsers
+from mynt_users.authentication import SafeJWTAuthentication
 import datetime
 
 
 class DealTermsApiView(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
     def post(self, request, *args, **kwargs):
         try:
             company = Company.objects.filter(user_id = request.data.get('user_id')).get()

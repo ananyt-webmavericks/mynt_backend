@@ -10,10 +10,13 @@ from campaign.models import Campaign
 from .models import Rewards
 from .serializers import Rewardsserializer
 from mynt_users.models import MyntUsers
+from mynt_users.authentication import SafeJWTAuthentication
 import datetime
 
 
 class RewardsApiView(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
     def post(self, request, *args, **kwargs):
         try:
             user = MyntUsers.objects.get(id = request.data.get('user_id'))

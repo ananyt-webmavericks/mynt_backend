@@ -4,7 +4,8 @@ from django.db import models
 
 USER_CHOICES = (
     ("INVESTOR","INVESTOR"),
-    ("FOUNDER","FOUNDER")
+    ("FOUNDER","FOUNDER"),
+    ("ADMIN","ADMIN")
 )
 
 class MyntUsers(models.Model):

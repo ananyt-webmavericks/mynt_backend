@@ -9,10 +9,13 @@ from company.models import Company
 from .models import Press
 from .serializers import Pressserializer
 from mynt_users.models import MyntUsers
+from mynt_users.authentication import SafeJWTAuthentication
 import datetime
 
 
 class PressApiView(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
     def post(self, request, *args, **kwargs):
         try:
             user = MyntUsers.objects.get(id = request.data.get('user_id'))

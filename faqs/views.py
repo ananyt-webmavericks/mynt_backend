@@ -10,9 +10,12 @@ from company.models import Company
 from campaign.models import Campaign
 from mynt_users.models import MyntUsers
 from .serializers import FaqsSerializers
+from mynt_users.authentication import SafeJWTAuthentication
 import datetime
 
 class FaqsApiView(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
     def post(self, request, *args, **kwargs):
         try:
             user = MyntUsers.objects.get(id = request.data.get('user_id'))

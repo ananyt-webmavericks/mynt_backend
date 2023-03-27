@@ -8,9 +8,12 @@ from rest_framework import status
 from .models import Company
 from mynt_users.models import MyntUsers
 from .serializers import CompanySerializers
+from mynt_users.authentication import SafeJWTAuthentication
 import datetime
 
 class CompanyApiView(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
     def post(self, request, *args, **kwargs):
         try:
             user = MyntUsers.objects.get(id = request.data.get('user_id'))

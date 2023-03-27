@@ -9,10 +9,13 @@ from company.models import Company
 from .models import Documents
 from .serializers import DocumentsSerializer
 from mynt_users.models import MyntUsers
+from mynt_users.authentication import SafeJWTAuthentication
 import datetime
 
 
 class DocumentsApiView(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
     def post(self, request, *args, **kwargs):
         try:
             company = Company.objects.get(user_id = request.data.get('user_id'))

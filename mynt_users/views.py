@@ -7,9 +7,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import MyntUsers
 from .serializers import MyntUsersSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 import random
 import math
 import datetime
+from mynt_users.authentication import SafeJWTAuthentication
 
 class MyntUsersApiView(APIView):
 
@@ -80,9 +82,14 @@ class EmailVerifyView(APIView):
                 if(otp == user.email_otp):
                     user.email_verified = True
                     user.save()
+
                     updated_user = MyntUsers.objects.get(email=request.data.get('email'))
                     serializer = MyntUsersSerializer(updated_user, many=False)
-                    return Response({"status":"true","message":"OTP verified!","data":serializer.data},status=status.HTTP_200_OK)
+                    refresh = RefreshToken.for_user(user=user)
+
+                    return Response({"status":"true","message":"OTP verified!","data":serializer.data,
+                                     "access_token": str(refresh.access_token),
+                                     "refresh_token": str(refresh)},status=status.HTTP_200_OK)
                 return Response({"status":"false","message":"Invalid OTP!"},status=status.HTTP_200_OK)
             return Response({"status":"false","message":"otp can not be empty!"},status=status.HTTP_400_BAD_REQUEST)
         except MyntUsers.DoesNotExist:
@@ -105,6 +112,8 @@ class SendOTPOnMail(APIView):
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class GetUserById(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
     def get(self, request, id):
         try:
             user = MyntUsers.objects.get(id=id)

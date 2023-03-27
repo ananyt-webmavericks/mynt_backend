@@ -5,6 +5,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from mynt_users.authentication import SafeJWTAuthentication
 from company.models import Company
 from .models import Campaign
 from .serializers import CampaignSerializer
@@ -13,6 +14,8 @@ import datetime
 
 
 class CampaignApiView(APIView):
+    permission_classes = [SafeJWTAuthentication]
+    
     def post(self, request, *args, **kwargs):
         try:
             company = Company.objects.filter(user_id = request.data.get('user_id')).get()
@@ -36,7 +39,7 @@ class CampaignApiView(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Company.DoesNotExist:
-            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"status":"false","message":"User has Doesn't Exist Company!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         

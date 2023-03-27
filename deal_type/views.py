@@ -7,10 +7,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import DealType
 from .serializers import DealTypeSerializer
+from mynt_users.authentication import SafeJWTAuthentication
 import datetime
 
 
 class DealTypeApiView(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
     def post(self, request, *args, **kwargs):
         try:
             deal_type = DealType.objects.filter(deal_name = request.data.get('deal_name'))
