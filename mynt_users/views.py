@@ -8,6 +8,7 @@ from rest_framework import status
 from .models import MyntUsers
 from .serializers import MyntUsersSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from company.models import Company
 import random
 import math
 import datetime
@@ -129,8 +130,17 @@ class LoginUserByEmail(APIView):
     def post(self, request, *args, **kwargs):
         try:
             user = MyntUsers.objects.get(email=request.data.get('email'))
+            if user.user_type == 'FOUNDER':
+                company = Company.objects.filter(user_id=user.id).first()
+                if company:
+                    if company.status == 'INACTIVE':
+                        return Response({"status":"false","message":"Your Company is Under Review"},status=status.HTTP_200_OK)
+                else:
+                    return Response({"status":"false","message":"User Doesn't Exist any Company!"},status=status.HTTP_404_NOT_FOUND)
+                    
             if user.social_login is False:
-                user.email_otp = generate_otp()
+                # user.email_otp = generate_otp()
+                user.email_otp = 1234
                 user.save()
                 return Response({"status":"true","message":"Please veirfy OTP on mail!"},status=status.HTTP_200_OK)
             serializer = MyntUsersSerializer(user)

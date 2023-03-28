@@ -40,6 +40,6 @@ class Company(models.Model):
     sector = models.CharField(max_length=50,null=True)
     invested_so_far = models.CharField(max_length=12,null=True)
     number_of_employees = models.CharField(max_length = 5, null=True)
-    status = models.CharField(choices=STATUS, max_length=20, default="INACTIVE")
+    status = models.CharField(choices=STATUS, max_length=20, default="ACTIVE")
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField(auto_now=True)
