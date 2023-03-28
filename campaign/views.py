@@ -20,10 +20,6 @@ class CampaignApiView(APIView):
         try:
             company = Company.objects.filter(user_id = request.data.get('user_id')).get()
             
-            campaign = Campaign.objects.filter(company_id = company.id)
-            
-            if campaign:
-                return Response({"status":"false","message":"Campaign already exists!"}, status=status.HTTP_400_BAD_REQUEST)
             data = {
                 "company_id":company.id,
                 "youtube_link":request.data.get('youtube_link'),
@@ -54,7 +50,7 @@ class CampaignApiView(APIView):
     def patch(self, request, *args, **kwargs):
         try:
             
-            campaign = Campaign.objects.get(company_id__user_id__id = request.data.get('user_id'))
+            campaign = Campaign.objects.get(id = request.data.get('campaign_id'))
 
             if request.data.get('youtube_link'):
                 campaign.youtube_link = request.data.get('youtube_link')
@@ -72,12 +68,12 @@ class CampaignApiView(APIView):
                 campaign.pitch = request.data.get('pitch')
             
             campaign.save()
-            updated_campaign = Campaign.objects.get(company_id__user_id__id = request.data.get('user_id'))
+            updated_campaign = Campaign.objects.get(id = request.data.get('campaign_id'))
             serializer = CampaignSerializer(updated_campaign, many=False)
             return Response({"status":"true","message":"Campaign updated successfully!","data":serializer.data}, status=status.HTTP_200_OK)
 
-        except Company.DoesNotExist:
-            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Campaign.DoesNotExist:
+            return Response({"status":"false","message":"Campaign Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
