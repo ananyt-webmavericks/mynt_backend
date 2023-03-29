@@ -19,7 +19,14 @@ class SafeJWTAuthentication(BaseAuthentication):
         https://github.com/encode/django-rest-framework/blob/master/rest_framework/authentication.py
     '''
     def has_permission(self, request, view):
-        return bool(request.user and request.user.email_verified)
+        if isinstance(request.user, MyntUsers):
+            if request.user.email_verified:
+                return True
+            else:
+                return False
+        else:
+            False
+        # return bool(request.user and not request.user.is_anonymous and request.user.email_verified)
 
     def authenticate(self, request):
 
