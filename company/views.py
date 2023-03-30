@@ -14,39 +14,6 @@ import datetime
 class CompanyApiView(APIView):
     permission_classes = [SafeJWTAuthentication]
 
-    def post(self, request, *args, **kwargs):
-        try:
-            user = MyntUsers.objects.get(id = request.data.get('user_id'))
-            company = Company.objects.filter(user_id = request.data.get('user_id'))
-            if company:
-                return Response({"status":"false","message":"company already exists!"}, status=status.HTTP_400_BAD_REQUEST)
-            data = {
-                "company_logo":request.data.get('company_logo'),
-                "founder_linked_in_profile": request.data.get('founder_linked_in_profile'),
-                "company_name":request.data.get('company_name'),
-                "company_linked_in_profile":request.data.get('company_linked_in_profile'),
-                "website_url":request.data.get('website_url'),
-                "previous_funding":request.data.get('previous_funding'),
-                "product_description":request.data.get('product_description'),
-                "traction_description":request.data.get('traction_description'),
-                "revenue":request.data.get('revenue'),
-                "reason_for_community_round":request.data.get('reason_for_community_round'),
-                "reason_for_mynt":request.data.get('reason_for_mynt'),
-                "existing_commitments":request.data.get('existing_commitments'),
-                "company_pitch":request.data.get('company_pitch'),
-                "created_at":datetime.datetime.now(),
-                "user_id": user.id
-            }
-            serializer = CompanySerializers(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except MyntUsers.DoesNotExist:
-            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
     def get(self, request, *args, **kwargs):
         try:
             company = Company.objects.filter()
@@ -57,7 +24,7 @@ class CompanyApiView(APIView):
         
     def patch(self, request, *args, **kwargs):
         try:
-            company = Company.objects.get(user_id = request.data.get('user_id'))
+            company = Company.objects.get(id = request.data.get('company_id'))
             if request.data.get('company_logo'):
                 company.company_logo = request.data.get('company_logo')
             if request.data.get('founder_linked_in_profile'):
@@ -123,11 +90,47 @@ class CompanyApiView(APIView):
             
                      
             company.save()
-            updated_company = Company.objects.get(user_id = request.data.get('user_id'))
+            updated_company = Company.objects.get(id = request.data.get('company_id'))
             serializer = CompanySerializers(updated_company, many=False)
-            return Response({"status":"true","message":"user company updated successfully!","data":serializer.data}, status=status.HTTP_200_OK)
+            return Response({"status":"true","message":"Company updated successfully!","data":serializer.data}, status=status.HTTP_200_OK)
 
         except Company.DoesNotExist:
-            return Response({"status":"false","message":"User company Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"status":"false","message":"Company Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class CompanyCreateApiView(APIView):
+     
+     def post(self, request, *args, **kwargs):
+        try:
+            user = MyntUsers.objects.get(id = request.data.get('user_id'))
+            company = Company.objects.filter(user_id = request.data.get('user_id'))
+            if company:
+                return Response({"status":"false","message":"Company already exists!"}, status=status.HTTP_400_BAD_REQUEST)
+            data = {
+                "company_logo":request.data.get('company_logo'),
+                "founder_linked_in_profile": request.data.get('founder_linked_in_profile'),
+                "company_name":request.data.get('company_name'),
+                "company_linked_in_profile":request.data.get('company_linked_in_profile'),
+                "website_url":request.data.get('website_url'),
+                "previous_funding":request.data.get('previous_funding'),
+                "product_description":request.data.get('product_description'),
+                "traction_description":request.data.get('traction_description'),
+                "revenue":request.data.get('revenue'),
+                "reason_for_community_round":request.data.get('reason_for_community_round'),
+                "reason_for_mynt":request.data.get('reason_for_mynt'),
+                "existing_commitments":request.data.get('existing_commitments'),
+                "company_pitch":request.data.get('company_pitch'),
+                "created_at":datetime.datetime.now(),
+                "user_id": user.id
+            }
+            serializer = CompanySerializers(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except MyntUsers.DoesNotExist:
+            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        

@@ -18,28 +18,38 @@ class FaqsApiView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            user = MyntUsers.objects.get(id = request.data.get('user_id'))
-            company = Company.objects.filter(user_id = request.data.get('user_id')).first()
-            if company is None:
-                return Response({"status":"false","message":"Company not exists!"}, status=status.HTTP_400_BAD_REQUEST)
-
-            campaign = Campaign.objects.filter(company_id = company).first()
-            if campaign is None:
-                return Response({"status":"false","message":"Campaign not exists!"}, status=status.HTTP_400_BAD_REQUEST)
+            campaign = Campaign.objects.get(id = request.data.get('campaign_id'))
             
-            data = {
-                "campaign_id": campaign.id,
-                "question":request.data.get('question'),
-                "answer":request.data.get('answer'),
-                "created_at":datetime.datetime.now()
-            }
-            serializer = FaqsSerializers(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except MyntUsers.DoesNotExist:
-            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+            faqs = request.data.get('faqs')
+            errors = []
+            res_data = []
+            if isinstance(faqs, list):
+                for i in faqs:
+                    try:
+                        data = {
+                            "campaign_id": campaign.id,
+                            "question": i['question'],
+                            "answer": i['answer'],
+                            "created_at":datetime.datetime.now()
+                        }
+                        serializer = FaqsSerializers(data=data)
+                        if serializer.is_valid():
+                            serializer.save()
+                            res_data.append(serializer.data)
+                        else:
+                            errors.append(serializer.errors)
+
+                    except Exception as e:
+                        continue
+            else:
+                return Response({"status":"false","message":"Invalid format of property faqs!"}, status=status.HTTP_400_BAD_REQUEST)
+                
+            if errors:
+                return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response(res_data, status=status.HTTP_201_CREATED)
+        except Campaign.DoesNotExist:
+            return Response({"status":"false","message":"Campaign Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -58,6 +68,12 @@ class FaqsApiView(APIView):
                 faqs.question = request.data.get('question')
             if request.data.get('answer'):
                 faqs.answer = request.data.get('answer')
+            if request.data.get('campaign_id'):
+                campaign = Campaign.objects.filter(id = request.data.get('campaign_id')).first()
+                if campaign:
+                    faqs.campaign_id = campaign
+                else:
+                    return Response({"status":"false","message":"Campaign Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
                  
             faqs.save()
             updated_faqs = Faqs.objects.get(id = request.data.get('faqs_id'))

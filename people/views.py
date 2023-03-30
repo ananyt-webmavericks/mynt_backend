@@ -18,10 +18,7 @@ class PeopleApiView(APIView):
     
     def post(self, request, *args, **kwargs):
         try:
-            user = MyntUsers.objects.get(id = request.data.get('user_id'))
-            company = Company.objects.filter(user_id = request.data.get('user_id')).first()
-            if company is None:
-                return Response({"status":"false","message":"Company not exists!"}, status=status.HTTP_400_BAD_REQUEST)
+            company = Company.objects.get(id = request.data.get('company_id'))
 
             data = {
                 "company_id": company.id,
@@ -40,8 +37,8 @@ class PeopleApiView(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except MyntUsers.DoesNotExist:
-            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Company.DoesNotExist:
+            return Response({"status":"false","message":"Company Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -72,6 +69,12 @@ class PeopleApiView(APIView):
                 people.description = request.data.get('description')
             if request.data.get('profile_image'):
                 people.profile_image = request.data.get('profile_image')
+            if request.data.get('company_id'):
+                company = Company.objects.filter(id = request.data.get('company_id')).first()
+                if company:
+                    people.company_id = company
+                else:
+                    return Response({"status":"false","message":"Company Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
                  
             people.save()
             updated_people = People.objects.get(id = request.data.get('people_id'))

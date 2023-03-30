@@ -44,7 +44,7 @@ class DealTypeApiView(APIView):
     def patch(self, request, *args, **kwargs):
         try:
             deal_type = DealType.objects.get(id = request.data.get('deal_type_id'))
-            deal_name = DealType.objects.filter(deal_name = request.data.get('deal_name'))
+            deal_name = DealType.objects.filter(deal_name = request.data.get('deal_name')).first()
            
             if deal_name:
                 return Response({"status":"false","message":"Deal Name already exists!"}, status=status.HTTP_400_BAD_REQUEST)

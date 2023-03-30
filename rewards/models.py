@@ -9,6 +9,6 @@ class Rewards(models.Model):
     campaign_id = models.ForeignKey(Campaign , on_delete=models.CASCADE)
     amount = models.CharField(max_length=12)
     product_name = models.CharField(max_length=100)
-    description = models.TextField()
+    discounted_price = models.IntegerField(null=True)
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField(auto_now=True)

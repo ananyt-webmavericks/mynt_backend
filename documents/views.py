@@ -18,7 +18,7 @@ class DocumentsApiView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            company = Company.objects.get(user_id = request.data.get('user_id'))
+            company = Company.objects.get(id = request.data.get('company_id'))
 
             data = {
                 "company_id":company.id,
@@ -59,7 +59,13 @@ class DocumentsApiView(APIView):
 
             if request.data.get('agreement_status'):
                 document.agreement_status = request.data.get('agreement_status')
-
+            
+            if request.data.get('company_id'):
+                company = Company.objects.filter(id = request.data.get('company_id')).first()
+                if company:
+                    document.company_id = company
+                else:
+                    return Response({"status":"false","message":"Company Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
             
             document.save()
             updated_document = Documents.objects.get(id = request.data.get('document_id'))

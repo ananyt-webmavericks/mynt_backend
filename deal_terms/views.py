@@ -19,14 +19,10 @@ class DealTermsApiView(APIView):
     permission_classes = [SafeJWTAuthentication]
 
     def post(self, request, *args, **kwargs):
-        try:
-            company = Company.objects.filter(user_id = request.data.get('user_id')).get()
+        try:            
+            campaign = Campaign.objects.get(id = request.data.get('campaign_id'))
             
-            campaign = Campaign.objects.filter(company_id = company.id).first()
-            if campaign is None:
-                return Response({"status":"false","message":"Campaign is not exists!"}, status=status.HTTP_400_BAD_REQUEST)
-            
-            deal_type = DealType.objects.filter(id = request.data.get('security_type')).first()
+            deal_type = DealType.objects.filter(id = request.data.get('security_type_id')).first()
             if deal_type is None:
                 return Response({"status":"false","message":"Security Type is not exists!"}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -45,8 +41,8 @@ class DealTermsApiView(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Company.DoesNotExist:
-            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Campaign.DoesNotExist:
+            return Response({"status":"false","message":"Campaign is not exists!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -64,12 +60,21 @@ class DealTermsApiView(APIView):
             dealterm = DealTerms.objects.get(id = request.data.get('deal_term_id'))
 
             if request.data.get('security_type'):
-                deal_type = DealType.objects.filter(id=request.data.get('security_type')).first()
+                deal_type = DealType.objects.filter(id=request.data.get('security_type_id')).first()
                 
-                if deal_type is None:
+                if deal_type:
+                    dealterm.security_type = deal_type.id
+                else:
                     return Response({"status":"false","message":"Security Type is not exists!"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if request.data.get('campaign_id'):
+                campaign = Campaign.objects.filter(id=request.data.get('campaign_id')).first()
                 
-                dealterm.security_type = deal_type.id
+                if campaign:
+                    dealterm.campaign_id = campaign
+                else:
+                    return Response({"status":"false","message":"Campaign Doesn't Exist!"}, status=status.HTTP_400_BAD_REQUEST)
+
 
             if request.data.get('discount'):
                 dealterm.discount = request.data.get('discount')

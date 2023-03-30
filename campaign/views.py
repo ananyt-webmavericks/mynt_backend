@@ -18,7 +18,7 @@ class CampaignApiView(APIView):
     
     def post(self, request, *args, **kwargs):
         try:
-            company = Company.objects.filter(user_id = request.data.get('user_id')).get()
+            company = Company.objects.get(id = request.data.get('company_id'))
             
             data = {
                 "company_id":company.id,
@@ -35,7 +35,7 @@ class CampaignApiView(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Company.DoesNotExist:
-            return Response({"status":"false","message":"User has Doesn't Exist Company!"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"status":"false","message":"Company Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -66,6 +66,13 @@ class CampaignApiView(APIView):
 
             if request.data.get('pitch'):
                 campaign.pitch = request.data.get('pitch')
+            
+            if request.data.get('company_id'):
+                company = Company.objects.filter(id = request.data.get('company_id')).first()
+                if company:
+                    campaign.company_id = company
+                else:
+                    return Response({"status":"false","message":"Company Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
             
             campaign.save()
             updated_campaign = Campaign.objects.get(id = request.data.get('campaign_id'))

@@ -21,7 +21,7 @@ class Company(models.Model):
     previous_funding = models.TextField(default=None,)
     product_description = models.TextField(default=None)
     traction_description = models.TextField(default=None)
-    revenue = models.CharField(max_length=12 , default='0')
+    revenue = models.CharField(max_length=120 , default='0')
     reason_for_community_round = models.TextField(default=None)
     reason_for_mynt = models.TextField(default=None)
     existing_commitments = models.TextField(default=None)

@@ -15,33 +15,13 @@ import datetime
 from mynt_users.authentication import SafeJWTAuthentication
 
 class MyntUsersApiView(APIView):
+    permission_classes = [SafeJWTAuthentication]
 
     def get (self, request, *args, **kwargs):
         users = MyntUsers.objects.filter()
         serializer = MyntUsersSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def post(self, request, *args, **kwargs):
-        data = {
-            'first_name': request.data.get('first_name'), 
-            'last_name': request.data.get('last_name'), 
-            'email':request.data.get('email'),
-            "social_login":request.data.get('social_login'),
-            "user_type":request.data.get('user_type')
-        }
-
-        if(request.data.get('social_login') is False):
-            data['email_otp'] = generate_otp()
-        if(request.data.get('profile_image')):
-             data['profile_image'] = request.data.get('profile_image')
-        if(request.data.get('social_login') is True):
-            data['email_verified'] = True
-        data["created_at"] = datetime.datetime.now()
-        serializer = MyntUsersSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def patch(self, request, *args, **kwargs):
         try:
@@ -140,7 +120,7 @@ class LoginUserByEmail(APIView):
                     
             if user.social_login is False:
                 # user.email_otp = generate_otp()
-                user.email_otp = 1234
+                user.email_otp = 123456
                 user.save()
                 return Response({"status":"true","message":"Please veirfy OTP on mail!"},status=status.HTTP_200_OK)
             serializer = MyntUsersSerializer(user)
@@ -149,3 +129,28 @@ class LoginUserByEmail(APIView):
             return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class MyntUserCreateApiview(APIView):
+    def post(self, request, *args, **kwargs):
+        data = {
+            'first_name': request.data.get('first_name'), 
+            'last_name': request.data.get('last_name'), 
+            'email':request.data.get('email'),
+            "social_login":request.data.get('social_login'),
+            "user_type":request.data.get('user_type')
+        }
+
+        if(request.data.get('social_login') is False):
+            # data['email_otp'] = generate_otp()
+            data['email_otp'] = 123456
+        if(request.data.get('profile_image')):
+             data['profile_image'] = request.data.get('profile_image')
+        if(request.data.get('social_login') is True):
+            data['email_verified'] = True
+        data["created_at"] = datetime.datetime.now()
+        serializer = MyntUsersSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    

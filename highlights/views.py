@@ -19,14 +19,7 @@ class HighlightsApiView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            user = MyntUsers.objects.get(id = request.data.get('user_id'))
-            company = Company.objects.filter(user_id = request.data.get('user_id')).first()
-            if company is None:
-                return Response({"status":"false","message":"Company not exists!"}, status=status.HTTP_400_BAD_REQUEST)
-
-            campaign = Campaign.objects.filter(company_id = company).first()
-            if campaign is None:
-                return Response({"status":"false","message":"Campaign not exists!"}, status=status.HTTP_400_BAD_REQUEST)
+            campaign = Campaign.objects.get(id = request.data.get('campaign_id'))
             
             data = {
                 "campaign_id": campaign.id,
@@ -40,8 +33,8 @@ class HighlightsApiView(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except MyntUsers.DoesNotExist:
-            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Campaign.DoesNotExist:
+            return Response({"status":"false","message":"Campaign Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -62,6 +55,12 @@ class HighlightsApiView(APIView):
                 highlight.description = request.data.get('description')
             if request.data.get('highlight_image'):
                 highlight.highlight_image = request.data.get('highlight_image')
+            if request.data.get('campaign_id'):
+                campaign = Campaign.objects.filter(id = request.data.get('campaign_id')).first()
+                if campaign:
+                    highlight.campaign_id = campaign
+                else:
+                    return Response({"status":"false","message":"Campaign Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
                  
             highlight.save()
             updated_highlight = Highlights.objects.get(id = request.data.get('highlight_id'))
