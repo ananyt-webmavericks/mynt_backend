@@ -134,3 +134,19 @@ class CompanyCreateApiView(APIView):
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
+class GetCompanyByUserId(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
+    def get(self, request, id):
+        try:
+            user = MyntUsers.objects.get(id=id)
+            company = Company.objects.filter(user_id = user.id).first()
+            if company is None:
+                return Response({"status":"false","message":"Company Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+            
+            serializer = CompanySerializers(company)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except MyntUsers.DoesNotExist:
+            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

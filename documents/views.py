@@ -20,21 +20,38 @@ class DocumentsApiView(APIView):
         try:
             company = Company.objects.get(id = request.data.get('company_id'))
 
-            data = {
-                "company_id":company.id,
-                "document_type":request.data.get('document_type'),
-                "document_name":request.data.get('document_name'),
-                "agreement_status":request.data.get('agreement_status'),
-                "created_at":datetime.datetime.now()
-                }
+            documents = request.data.get('documents')
+            errors = []
+            res_data = []
+            if isinstance(documents, list):
+                for i in documents:
+                    try:
+                        data = {
+                                "company_id":company.id,
+                                "document_type":i['document_type'],
+                                "document_name":i['document_name'],
+                                "agreement_status":i['agreement_status'],
+                                "created_at":datetime.datetime.now()
+                                }
+                        serializer = DocumentsSerializer(data=data)
+                        if serializer.is_valid():
+                            serializer.save()
+                            res_data.append(serializer.data)
+                        else:
+                            errors.append(serializer.errors)
+
+                    except Exception as e:
+                        continue
+            else:
+                return Response({"status":"false","message":"Invalid format of property documents!"}, status=status.HTTP_400_BAD_REQUEST)
+                
+            if errors:
+                return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response(res_data, status=status.HTTP_201_CREATED)
             
-            serializer = DocumentsSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Company.DoesNotExist:
-            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"status":"false","message":"Company Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
