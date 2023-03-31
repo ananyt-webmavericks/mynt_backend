@@ -13,6 +13,7 @@ import random
 import math
 import datetime
 from mynt_users.authentication import SafeJWTAuthentication
+from .mail import send_mail
 
 class MyntUsersApiView(APIView):
     permission_classes = [SafeJWTAuthentication]
@@ -85,7 +86,13 @@ class SendOTPOnMail(APIView):
             #add logic to send email templates
             user.email_otp = generate_otp()
             user.email_verified = False
-            user.save()
+            user.save()  
+            #send email to User for OTP
+            context = {
+                    'name' : user.first_name,
+                    'otp':user.email_otp}
+            send_mail(template_name='verification.html',context=context,email=user.email,name=f"{user.first_name} {user.last_name}",subject="Verification Code",text_part=f"Verification Code {user.email}")
+            
             return Response({"status":"true","message":"OTP sent successfully!!"},status=status.HTTP_200_OK)
         except MyntUsers.DoesNotExist:
             return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
@@ -110,6 +117,10 @@ class LoginUserByEmail(APIView):
     def post(self, request, *args, **kwargs):
         try:
             user = MyntUsers.objects.get(email=request.data.get('email'))
+            login_type = request.data.get('login_type')
+            if user.user_type != login_type:
+                return Response({"status":"false","message":f"This User is not Valid {login_type}!"},status=status.HTTP_404_NOT_FOUND)
+
             if user.user_type == 'FOUNDER':
                 company = Company.objects.filter(user_id=user.id).first()
                 if company:
@@ -119,9 +130,14 @@ class LoginUserByEmail(APIView):
                     return Response({"status":"false","message":"User Doesn't Exist any Company!"},status=status.HTTP_404_NOT_FOUND)
                     
             if user.social_login is False:
-                # user.email_otp = generate_otp()
-                user.email_otp = 123456
+                user.email_otp = generate_otp()
                 user.save()
+                #send email to User for OTP
+                context = {
+                        'name' : user.first_name,
+                        'otp':user.email_otp}
+                send_mail(template_name='verification.html',context=context,email=user.email,name=f"{user.first_name} {user.last_name}",subject="Verification Code",text_part=f"Verification Code {user.email}")
+                
                 return Response({"status":"true","message":"Please veirfy OTP on mail!"},status=status.HTTP_200_OK)
             serializer = MyntUsersSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -141,8 +157,13 @@ class MyntUserCreateApiview(APIView):
         }
 
         if(request.data.get('social_login') is False):
-            # data['email_otp'] = generate_otp()
-            data['email_otp'] = 123456
+            data['email_otp'] = generate_otp()
+
+            context = {
+                    'name' : data['first_name'],
+                    'otp': data['email_otp']}
+            send_mail(template_name='verification.html',context=context,email=data['email'],name=f"{data['first_name']} {data['last_name']}",subject="Verification Code",text_part=f"Verification Code {data['email']}")
+                
         if(request.data.get('profile_image')):
              data['profile_image'] = request.data.get('profile_image')
         if(request.data.get('social_login') is True):
@@ -151,6 +172,10 @@ class MyntUserCreateApiview(APIView):
         serializer = MyntUsersSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
+            context = {
+                    'name' : request.data.get('first_name') }
+            send_mail(template_name='welcome_mail.html',context=context,email=request.data.get('email'),name=f"{request.data.get('first_name')} {request.data.get('last_name')}",subject="Welcome to Mynt invest",text_part=f"Welcome to Mynt invest {request.data.get('email')}")
+                
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     

@@ -218,7 +218,7 @@ class VerifyMobileOtp (APIView):
                 updated_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
                 serializer = InvestorKycSerializer(updated_kyc, many=False)
                 return Response({"status":"true","message":"otp verified successfully!","data":serializer.data}, status=status.HTTP_200_OK)
-            return Response({"status":"false","message":"Invalid OTP!"},status=status.HTTP_200_OK)
+            return Response({"status":"false","message":"Invalid OTP!"},status=status.HTTP_404_NOT_FOUND)
         except InvestorKyc.DoesNotExist:
             return Response({"status":"false","message":"User kyc Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
