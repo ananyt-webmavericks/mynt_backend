@@ -57,7 +57,8 @@ INSTALLED_APPS = [
     'people',
     'press',
     'rewards',
-    'deal_type'
+    'deal_type',
+    'payment'
 ]
 
 REST_FRAMEWORK = {

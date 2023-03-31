@@ -13,6 +13,7 @@ import math
 import datetime
 import http.client
 import json
+import requests
 import environ
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -107,12 +108,54 @@ def verify_pan_card(pan_card):
         res = conn.getresponse()
         data = res.read()
         data = json.loads(data.decode("utf-8"))
-        if data['error']:
+
+        if data.get('result'):
+            if data['result'].get('isValid') == True:
+                return True
+        
+        if data.get('error'):
             return False
         
+        return False
 
     except Exception as e:
         return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def verify_aadhar_card(aadhaar):
+    try:
+        auth_token , item_id = access_token_signzy()
+
+        conn = http.client.HTTPSConnection(env('SIGNZY_URL'))
+        payload = json.dumps({
+            "service": "Identity",
+            "itemId": item_id,
+            "task": "verifyAadhaar",
+            "accessToken": auth_token,
+            "essentials": {
+                "uid": aadhaar
+            }
+        })
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        conn.request("POST", "/api/v2/snoops", payload, headers)
+        res = conn.getresponse()
+        data = res.read()
+        data = json.loads(data.decode("utf-8"))
+
+        if data.get('response'):
+            if data['response'].get('result'):
+                if data['response']['result'].get('verified') == 'true':
+                    return True
+        
+        if data.get('error'):
+            return False
+        
+        return False
+    except Exception as e:
+        return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 def verify_bank_account(bank_account,ifsc_code):
     try:
@@ -120,6 +163,7 @@ def verify_bank_account(bank_account,ifsc_code):
         return False
     except Exception as e:
         return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 def authorize_signzy():
     try:
         conn = http.client.HTTPSConnection(env('SIGNZY_URL'))
@@ -135,6 +179,40 @@ def authorize_signzy():
         data = res.read()
         data = json.loads(data.decode("utf-8"))
         return data['id'],data['userId']
+    except Exception as e:
+        return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def access_token_signzy():
+    try:
+
+        auth_token , user_id = authorize_signzy()
+
+        conn = http.client.HTTPSConnection(env('SIGNZY_URL'))
+
+        image_url = env('IMAGE_URL')
+        callbackUrl = env('CALL_BACK_URL')
+        email = env('METEOR_EMAIL')
+
+        payload = json.dumps({
+                            "type": "aadhaar",
+                            "email": email,
+                            "callbackUrl": callbackUrl,
+                            "images": [image_url]
+                            })
+        
+        headers = {
+                'Authorization': auth_token,
+                'Content-Type': 'application/json'
+                }
+
+        conn.request("POST", "/api/v2/patrons/"+user_id+"/identities", payload, headers)
+
+        res = conn.getresponse()
+        data = res.read()
+        data = json.loads(data.decode("utf-8"))
+        return data['accessToken'],data['id']
+    
     except Exception as e:
         return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -316,3 +394,46 @@ class InvestorKycBankVerificationApiView(APIView):
             return Response({"status":"false","message":"User kyc Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class InvestorKycAadharApiView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            user = MyntUsers.objects.get(id = request.data.get('user_id'))
+            investor_kyc = InvestorKyc.objects.filter(user_id = request.data.get('user_id'))
+            if investor_kyc:
+                return Response({"status":"false","message":"investor kyc already exists!"}, status=status.HTTP_400_BAD_REQUEST)
+            data = {
+                "aadhaar_card_number":request.data.get('aadhaar_card_number'),
+                "user_id":user.id,
+                "created_at":datetime.datetime.now(),
+                "aadhaar_card_verified":verify_aadhar_card(request.data.get('aadhaar_card_number'))
+            }
+            serializer = InvestorKycSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except MyntUsers.DoesNotExist:
+            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+    def patch(self, request, *args, **kwargs):
+        try:
+            investor_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
+            if request.data.get('aadhaar_card_number'):
+                investor_kyc.aadhaar_card_number = request.data.get('aadhaar_card_number')
+
+            investor_kyc.aadhaar_card_verified = verify_aadhar_card(request.data.get('aadhaar_card_number'))
+            investor_kyc.save()
+            updated_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
+            serializer = InvestorKycSerializer(updated_kyc, many=False)
+            return Response({"status":"true","message":"user kyc updated successfully!","data":serializer.data}, status=status.HTTP_200_OK)
+
+        except investor_kyc.DoesNotExist:
+            return Response({"status":"false","message":"User Kyc Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        

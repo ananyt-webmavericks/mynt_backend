@@ -25,5 +25,7 @@ class InvestorKyc(models.Model):
     mobile_number = models.CharField(max_length=20,null=True)
     mobile_number_otp = models.CharField(max_length=6,default=None , null=True)
     mobile_number_verified = models.BooleanField(default=False)
+    aadhaar_card_number= models.CharField(max_length=12, null=True)
+    aadhaar_card_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField(auto_now=True)

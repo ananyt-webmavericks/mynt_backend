@@ -1,7 +1,7 @@
 
 from django.urls import path
 
-from investor_kyc.views import InvestorKycPanApiView,GetInvestorKyc,InvestorKycMobileApiView,SendMobileOtp,VerifyMobileOtp,InvestorKycAddressApiView,InvestorKycBankVerificationApiView
+from investor_kyc.views import InvestorKycPanApiView,GetInvestorKyc,InvestorKycMobileApiView,SendMobileOtp,VerifyMobileOtp,InvestorKycAddressApiView,InvestorKycBankVerificationApiView,InvestorKycAadharApiView
 
 urlpatterns = [
     path('pan/manage', InvestorKycPanApiView.as_view()),
@@ -11,4 +11,5 @@ urlpatterns = [
     path('mobile/verify-otp', VerifyMobileOtp.as_view()),
     path('address/manage', InvestorKycAddressApiView.as_view()),
     path('bank-verification/manage', InvestorKycBankVerificationApiView.as_view()),
+    path('aadhaar-verification/manage', InvestorKycAadharApiView.as_view()),    
 ]

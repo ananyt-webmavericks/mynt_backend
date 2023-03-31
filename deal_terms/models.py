@@ -5,12 +5,7 @@ from django.db import models
 from campaign.models import Campaign
 from deal_type.models import DealType
 
-DEAL_TYPE = (
-    ("CSOP","CSOP"),
-    ("CCD","CCD"),
-    ("NCD","NCD"),
-    ("ID","ID")
-)
+
 
 class DealTerms(models.Model):
     id = models.BigAutoField(primary_key=True)
