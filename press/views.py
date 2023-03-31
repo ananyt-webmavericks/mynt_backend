@@ -18,39 +18,22 @@ class PressApiView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
+
             company = Company.objects.get(id = request.data.get('company_id'))
-
-            banners = request.data.get('banners')
-            errors = []
-            res_data = []
-            if isinstance(banners, list):
-                for i in banners:
-                    try:
-                        data = {
-                                "company_id": company.id,
-                                "title":request.data.get('title'),
-                                "link":request.data.get('link'),
-                                "description":request.data.get('description'),
-                                "banner":request.data.get('banner'),
-                                "created_at":datetime.datetime.now()
-                            }
-                        serializer = Pressserializer(data=data)
-                        if serializer.is_valid():
-                            serializer.save()
-                            res_data.append(serializer.data)
-                        else:
-                            errors.append(serializer.errors)
-
-                    except Exception as e:
-                        continue
-            else:
-                return Response({"status":"false","message":"Invalid format of property documents!"}, status=status.HTTP_400_BAD_REQUEST)
-                
-            if errors:
-                return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response(res_data, status=status.HTTP_201_CREATED)
             
+            data = {
+                "company_id": company.id,
+                "title":request.data.get('title'),
+                "link":request.data.get('link'),
+                "description":request.data.get('description'),
+                "banner":request.data.get('banner'),
+                "created_at":datetime.datetime.now()
+            }
+            serializer = Pressserializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Company.DoesNotExist:
             return Response({"status":"false","message":"Company Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
