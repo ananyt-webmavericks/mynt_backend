@@ -72,3 +72,19 @@ class RewardsApiView(APIView):
             return Response({"status":"false","message":"Reward Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetRewardsbyCampaignId(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
+    def get(self, request, id):
+        try:
+            rewards = Rewards.objects.filter(campaign_id = id).all()
+            if rewards:
+                serializer = Rewardsserializer(rewards, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"status":"false","message":"Rewards Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

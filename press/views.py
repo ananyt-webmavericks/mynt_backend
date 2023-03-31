@@ -91,3 +91,19 @@ class PressApiView(APIView):
             return Response({"status":"false","message":"Press Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetPressbyCompanyId(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
+    def get(self, request, id):
+        try:
+            press = Press.objects.filter(company_id = id).all()
+            if press:
+                serializer = Pressserializer(press, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"status":"false","message":"Press Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -94,3 +94,18 @@ class DocumentsApiView(APIView):
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
+
+class GetDocumentsbyCompanyId(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
+    def get(self, request, id):
+        try:
+            documents = Documents.objects.filter(company_id = id).all()
+            if documents:
+                serializer = DocumentsSerializer(documents, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"status":"false","message":"Documents Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
