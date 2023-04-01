@@ -30,5 +30,6 @@ urlpatterns = [
     path('api/press/',include("press.urls")),
     path('api/rewards/',include("rewards.urls")),
     path('api/deal_terms/',include("deal_terms.urls")),
-    path('api/documents/',include("documents.urls"))
+    path('api/documents/',include("documents.urls")),
+    path('api/payments/',include("payment.urls"))
 ]
