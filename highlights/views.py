@@ -31,7 +31,6 @@ class HighlightsApiView(APIView):
                                 "campaign_id": campaign.id,
                                 "title":i['title'],
                                 "description":i['description'],
-                                "highlight_image":i['highlight_image'],
                                 "created_at":datetime.datetime.now()
                             }
                         serializer = Highlightsserializer(data=data)
@@ -73,6 +72,10 @@ class HighlightsApiView(APIView):
                 highlight.description = request.data.get('description')
             if request.data.get('highlight_image'):
                 highlight.highlight_image = request.data.get('highlight_image')
+
+            if request.data.get('status'):
+                highlight.status = request.data.get('status')
+
             if request.data.get('campaign_id'):
                 campaign = Campaign.objects.filter(id = request.data.get('campaign_id')).first()
                 if campaign:

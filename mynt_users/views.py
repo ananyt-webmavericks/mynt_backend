@@ -13,6 +13,7 @@ import random
 import math
 import datetime
 from mynt_users.authentication import SafeJWTAuthentication
+from django.contrib.auth.hashers import check_password, make_password
 from .mail import send_mail
 
 class MyntUsersApiView(APIView):
@@ -121,6 +122,7 @@ class LoginUserByEmail(APIView):
             if user.user_type != login_type:
                 return Response({"status":"false","message":f"This User is not Valid {login_type}!"},status=status.HTTP_404_NOT_FOUND)
 
+            # Check Founder Company is Active
             if user.user_type == 'FOUNDER':
                 company = Company.objects.filter(user_id=user.id).first()
                 if company:
@@ -128,7 +130,20 @@ class LoginUserByEmail(APIView):
                         return Response({"status":"false","message":"Your Company is Under Review"},status=status.HTTP_200_OK)
                 else:
                     return Response({"status":"false","message":"User Doesn't Exist any Company!"},status=status.HTTP_404_NOT_FOUND)
-                    
+           
+            # Login Code for ADMIN User
+            if user.user_type == 'ADMIN':
+                is_password= check_password(request.data.get('password'),user.password)
+                if is_password:
+                    refresh = RefreshToken.for_user(user=user)
+                    serializer = MyntUsersSerializer(user)
+                    return Response({"status":"true","message":"Password verified!","data":serializer.data,
+                                     "access_token": str(refresh.access_token),
+                                     "refresh_token": str(refresh)},status=status.HTTP_200_OK)
+                else:
+                    return Response({"status":"false","message":"Incorrect Password!"},status=status.HTTP_404_NOT_FOUND)
+
+                
             if user.social_login is False:
                 user.email_otp = generate_otp()
                 user.save()
@@ -157,12 +172,18 @@ class MyntUserCreateApiview(APIView):
         }
 
         if(request.data.get('social_login') is False):
-            data['email_otp'] = generate_otp()
+            
+            # Admin User Create
+            if request.data.get('user_type') == 'ADMIN':
+                hash_password = make_password(password=request.data.get('password'))
+                data['password'] = hash_password
+            else:
+                data['email_otp'] = generate_otp()
 
-            context = {
-                    'name' : data['first_name'],
-                    'otp': data['email_otp']}
-            send_mail(template_name='verification.html',context=context,email=data['email'],name=f"{data['first_name']} {data['last_name']}",subject="Verification Code",text_part=f"Verification Code {data['email']}")
+                context = {
+                        'name' : data['first_name'],
+                        'otp': data['email_otp']}
+                send_mail(template_name='verification.html',context=context,email=data['email'],name=f"{data['first_name']} {data['last_name']}",subject="Verification Code",text_part=f"Verification Code {data['email']}")
                 
         if(request.data.get('profile_image')):
              data['profile_image'] = request.data.get('profile_image')

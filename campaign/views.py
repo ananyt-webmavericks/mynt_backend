@@ -23,10 +23,6 @@ class CampaignApiView(APIView):
             
             data = {
                 "company_id":company.id,
-                "youtube_link":request.data.get('youtube_link'),
-                "ama_date":request.data.get('ama_date'),
-                "ama_meet_link":request.data.get('ama_meet_link'),
-                "ama_youtube_video":request.data.get('ama_youtube_video'),
                 "pitch":request.data.get('pitch'),
                 "created_at":datetime.datetime.now()
                 }

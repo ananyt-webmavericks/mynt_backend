@@ -14,6 +14,7 @@ class MyntUsers(models.Model):
     last_name = models.CharField(max_length=60)
     email = models.CharField(max_length=100 , unique=True)
     email_otp = models.CharField(max_length=6,default=None , null=True)
+    password = models.CharField(max_length=128,null=True)
     social_login = models.BooleanField(default=False)
     country = models.CharField(max_length=100,default=None , null=True)
     nationality = models.CharField(max_length=100,default=None , null=True)
