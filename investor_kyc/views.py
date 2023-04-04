@@ -159,8 +159,42 @@ def verify_aadhar_card(aadhaar):
 
 def verify_bank_account(bank_account,ifsc_code):
     try:
+
         auth_token , user_id = authorize_signzy()
+
+        conn = http.client.HTTPSConnection(env('SIGNZY_URL'))
+        payload = json.dumps({
+            "task": "bankTransfer",
+            "essentials": {
+            "beneficiaryAccount": bank_account,
+            "beneficiaryIFSC": ifsc_code,
+            "namematchscore":"0.5",
+            "namefuzzy":"false"}
+        })
+
+        headers = {
+            'Authorization': auth_token,
+            'Content-Type': 'application/json'
+        }
+        conn.request("POST", "/api/v2/patrons/"+user_id+"/bankaccountverifications", payload, headers)
+        
+        res = conn.getresponse()
+        data = res.read()
+        data = json.loads(data.decode("utf-8"))
+
+        if data.get('result'):
+            result = data.get('result')
+            if result.get('active') == 'yes':
+                if result.get('bankTransfer'):
+                    bankTransfer = result.get('bankTransfer')
+                    if bankTransfer.get('response') == 'Transaction Successful':
+                        return True
+        
+        if data.get('error'):
+            return False
+        
         return False
+        
     except Exception as e:
         return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

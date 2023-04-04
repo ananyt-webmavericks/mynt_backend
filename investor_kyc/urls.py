@@ -11,5 +11,5 @@ urlpatterns = [
     path('mobile/verify-otp', VerifyMobileOtp.as_view()),
     path('address/manage', InvestorKycAddressApiView.as_view()),
     path('bank-verification/manage', InvestorKycBankVerificationApiView.as_view()),
-    path('aadhaar-verification/manage', InvestorKycAadharApiView.as_view()),    
+    path('aadhaar-verification/manage', InvestorKycAadharApiView.as_view()),
 ]
