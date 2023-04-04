@@ -154,7 +154,16 @@ class LoginUserByEmail(APIView):
                 send_mail(template_name='verification.html',context=context,email=user.email,name=f"{user.first_name} {user.last_name}",subject="Verification Code",text_part=f"Verification Code {user.email}")
                 
                 return Response({"status":"true","message":"Please veirfy OTP on mail!"},status=status.HTTP_200_OK)
+            
             serializer = MyntUsersSerializer(user)
+
+            if user.social_login is True:
+                refresh = RefreshToken.for_user(user=user)
+
+                return Response({"status":"true","message":"Successfully logged In","data":serializer.data,
+                                    "access_token": str(refresh.access_token),
+                                    "refresh_token": str(refresh)},status=status.HTTP_200_OK)
+            
             return Response(serializer.data, status=status.HTTP_200_OK)
         except MyntUsers.DoesNotExist:
             return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
