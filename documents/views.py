@@ -31,6 +31,7 @@ class DocumentsApiView(APIView):
                                 "document_type":i['document_type'],
                                 "document_name":i['document_name'],
                                 "agreement_status":i['agreement_status'],
+                                "document_url":i['document_url'],
                                 "created_at":datetime.datetime.now()
                                 }
                         serializer = DocumentsSerializer(data=data)
@@ -76,6 +77,9 @@ class DocumentsApiView(APIView):
 
             if request.data.get('agreement_status'):
                 document.agreement_status = request.data.get('agreement_status')
+            
+            if request.data.get('document_url'):
+                document.document_url = request.data.get('document_url')
             
             if request.data.get('company_id'):
                 company = Company.objects.filter(id = request.data.get('company_id')).first()

@@ -128,7 +128,7 @@ def call_cashfree(user,total_amount,order_id,mobile_number):
             "customer_phone": mobile_number
         },
         "order_meta": {
-            "return_url": f"{env('CASHFREE_RETURN_URL')}/?order_id={order_id}",
+            "return_url": f"{env('CASHFREE_RETURN_URL')}?order_id={order_id}",
             "notify_url": env('CASHFREE_NOTIFY_URL')
         },
         "order_note": "enrollment"

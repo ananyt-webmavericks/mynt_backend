@@ -26,7 +26,7 @@ class PressApiView(APIView):
                 "title":request.data.get('title'),
                 "link":request.data.get('link'),
                 "description":request.data.get('description'),
-                "banner":request.data.get('banner'),
+                "banner":str(request.data.get('banner')),
                 "created_at":datetime.datetime.now()
             }
             serializer = Pressserializer(data=data)
@@ -57,7 +57,7 @@ class PressApiView(APIView):
             if request.data.get('description'):
                 press.description = request.data.get('description')
             if request.data.get('banner'):
-                press.banner = request.data.get('banner')
+                press.banner = str(request.data.get('banner'))
             if request.data.get('company_id'):
                 company = Company.objects.filter(id = request.data.get('company_id')).first()
                 if company:
