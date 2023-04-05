@@ -8,7 +8,7 @@ from rest_framework import status
 from mynt_users.authentication import SafeJWTAuthentication
 from company.models import Company
 from .models import Campaign
-from .serializers import CampaignSerializer
+from .serializers import CampaignSerializer, CampaignSerializerWithCompanySerializer
 from deal_terms.models import DealTerms
 from mynt_users.models import MyntUsers
 import datetime
@@ -126,7 +126,7 @@ class GetCmapaignById(APIView):
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GetAllCmapaignbyStatus(APIView):
+class GetAllCmapaignByStatus(APIView):
     permission_classes = [SafeJWTAuthentication]
 
     def get(self, request, *args, **kwargs):
@@ -137,5 +137,21 @@ class GetAllCmapaignbyStatus(APIView):
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response({"status":"false","message":"Campaign Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetCampaignWithCompanyDataByCampaignId(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
+    def get(self, request, id):
+        try:
+            campaign = Campaign.objects.get(id = id)
+
+            serializer = CampaignSerializerWithCompanySerializer(campaign)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Campaign.DoesNotExist:
+            return Response({"status":"false","message":"Campaign Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -172,40 +172,56 @@ class LoginUserByEmail(APIView):
         
 class MyntUserCreateApiview(APIView):
     def post(self, request, *args, **kwargs):
-        data = {
-            'first_name': request.data.get('first_name'), 
-            'last_name': request.data.get('last_name'), 
-            'email':request.data.get('email'),
-            "social_login":request.data.get('social_login'),
-            "user_type":request.data.get('user_type')
-        }
+        try:
+            data = {
+                'first_name': request.data.get('first_name'), 
+                'last_name': request.data.get('last_name'), 
+                'email':request.data.get('email'),
+                "social_login":request.data.get('social_login'),
+                "user_type":request.data.get('user_type')
+            }
 
-        if(request.data.get('social_login') is False):
-            
-            # Admin User Create
-            if request.data.get('user_type') == 'ADMIN':
-                hash_password = make_password(password=request.data.get('password'))
-                data['password'] = hash_password
-            else:
-                data['email_otp'] = generate_otp()
+            if(request.data.get('social_login') is False):
+                
+                # Admin User Create
+                if request.data.get('user_type') == 'ADMIN':
+                    hash_password = make_password(password=request.data.get('password'))
+                    data['password'] = hash_password
+                else:
+                    data['email_otp'] = generate_otp()
 
+            if(request.data.get('profile_image')):
+                data['profile_image'] = request.data.get('profile_image')
+            if(request.data.get('social_login') is True):
+                data['email_verified'] = True
+            data["created_at"] = datetime.datetime.now()
+
+            serializer = MyntUsersSerializer(data=data)
+
+            if serializer.is_valid():
+                serializer.save()
+
+                #Send the Welcome Email
                 context = {
-                        'name' : data['first_name'],
-                        'otp': data['email_otp']}
-                send_mail(template_name='verification.html',context=context,email=data['email'],name=f"{data['first_name']} {data['last_name']}",subject="Verification Code",text_part=f"Verification Code {data['email']}")
+                        'name' : request.data.get('first_name') }
+                send_mail(template_name='welcome_mail.html',context=context,email=request.data.get('email'),name=f"{request.data.get('first_name')} {request.data.get('last_name')}",subject="Welcome to Mynt invest",text_part=f"Welcome to Mynt invest {request.data.get('email')}")
                 
-        if(request.data.get('profile_image')):
-             data['profile_image'] = request.data.get('profile_image')
-        if(request.data.get('social_login') is True):
-            data['email_verified'] = True
-        data["created_at"] = datetime.datetime.now()
-        serializer = MyntUsersSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            context = {
-                    'name' : request.data.get('first_name') }
-            send_mail(template_name='welcome_mail.html',context=context,email=request.data.get('email'),name=f"{request.data.get('first_name')} {request.data.get('last_name')}",subject="Welcome to Mynt invest",text_part=f"Welcome to Mynt invest {request.data.get('email')}")
+                # If social login is True raise the token
+                if(request.data.get('social_login') is True):
+                    user = MyntUsers.objects.filter(email = request.data.get('email')).first()
+                    refresh = RefreshToken.for_user(user=user)
+                    return Response({"status":"true","message":"Successfully logged In","data":serializer.data,
+                                        "access_token": str(refresh.access_token),
+                                        "refresh_token": str(refresh)},status=status.HTTP_200_OK)
                 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+                # Send the OTP mail if social login is False
+                if(request.data.get('social_login') is False) and request.data.get('user_type') != 'ADMIN':
+                    context = {
+                            'name' : data['first_name'],
+                            'otp': data['email_otp']}
+                    send_mail(template_name='verification.html',context=context,email=data['email'],name=f"{data['first_name']} {data['last_name']}",subject="Verification Code",text_part=f"Verification Code {data['email']}")
+                
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
