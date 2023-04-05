@@ -25,7 +25,7 @@ environ.Env.read_env()
 class CreateOrder(APIView):
     permission_classes = [SafeJWTAuthentication]
 
-    def post(self, request, args, *kwargs):
+    def post(self, request, *args, **kwargs):
         try:
             user = MyntUsers.objects.get(id = request.data.get('user_id'))
             campaign = Campaign.objects.get(id = request.data.get('campaign_id'))
@@ -47,7 +47,7 @@ class CreateOrder(APIView):
                 "campaign_id":campaign.id,
                 "mynt_order_id":order_id,
                 "amount":request.data.get("amount"),
-                "total_amount":request.data.get("total_amount"),
+                "total_amount":total_amount,
                 "created_at":datetime.datetime.now(),
                 "updated_at":datetime.datetime.now(),
             }
