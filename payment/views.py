@@ -41,7 +41,7 @@ class CreateOrder(APIView):
             ms = datetime.datetime.now()
             total_amount = request.data.get("total_amount")
             mobile_number = investor_kyc.mobile_number
-            order_id = str(time.mktime(ms.timetuple()))+user.first_name
+            order_id = str(int(time.mktime(ms.timetuple())))+'_'+user.first_name
             data = {
                 "user_id":user.id,
                 "campaign_id":campaign.id,
@@ -56,12 +56,15 @@ class CreateOrder(APIView):
                 serializer.save()
                 
                 cashfree_order_id , payment_session_id = call_cashfree(user,total_amount,order_id,mobile_number)
-                data['cashfree_order_id'] = cashfree_order_id
-                data['payment_session_id'] = payment_session_id
-                serializer = PaymentSerializer(data=data)
-                if serializer.is_valid():
-                    serializer.save()
+                payment = Payment.objects.filter(mynt_order_id=order_id).first()
+                if payment:
+                    payment.cashfree_order_id = cashfree_order_id
+                    payment.payment_session_id = payment_session_id
+                    payment.save()
+                    serializer = PaymentSerializer(payment)
                     return Response({"status":"true","message":"Payment Created Succesfully","data":serializer.data}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"status":"false","message":f"Payment Doesn't Exist for this mynt_order_id {order_id}"},status=status.HTTP_404_NOT_FOUND)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except MyntUsers.DoesNotExist:
             return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
@@ -84,6 +87,7 @@ class GetOrderDetails(APIView):
 class SuccessWebhook(APIView):
     def post(self, request, *args, **kwargs):
         try:
+            print("request",request.data)
             data = request.data.get('data')
             order_data = data['order']
             payment_data = data['payment']
@@ -108,6 +112,7 @@ class SuccessWebhook(APIView):
             else:
                 return Response({"status":"false","message":"Payment Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            print("Exception",e)
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -122,13 +127,13 @@ def call_cashfree(user,total_amount,order_id,mobile_number):
         "order_amount": total_amount,
         "order_currency": "INR",
         "customer_details": {
-            "customer_id": user.id,
-            "customer_name": user.first_name,
-            "customer_email": user.email,
-            "customer_phone": mobile_number
+            "customer_id": str(user.id),
+            "customer_name": str(user.first_name),
+            "customer_email": str(user.email),
+            "customer_phone": str(mobile_number)
         },
         "order_meta": {
-            "return_url": f"{env('CASHFREE_RETURN_URL')}?order_id={order_id}",
+            "return_url": env('CASHFREE_RETURN_URL'),
             "notify_url": env('CASHFREE_NOTIFY_URL')
         },
         "order_note": "enrollment"
