@@ -141,7 +141,7 @@ class GetAllCmapaignByStatus(APIView):
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GetCampaignWithCompanyDataByCampaignId(APIView):
+class GetCampaignWithAllDataByCampaignId(APIView):
     permission_classes = [SafeJWTAuthentication]
 
     def get(self, request, id):
