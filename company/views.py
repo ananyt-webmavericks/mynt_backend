@@ -61,10 +61,8 @@ class CompanyApiView(APIView):
                 company.pincode = request.data.get('pincode')
             if request.data.get('company_address'):
                 company.company_address = request.data.get('company_address')
-            if request.data.get('state'):
-                company.state = request.data.get('state')
-            if request.data.get('state'):
-                company.state = request.data.get('state')
+            if request.data.get('status'):
+                company.status = request.data.get('status')
             if request.data.get('facebook_link'):
                  company.facebook_link = request.data.get('facebook_link')
             if request.data.get('instagram_link'):
