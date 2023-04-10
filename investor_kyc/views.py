@@ -8,6 +8,7 @@ from rest_framework import status
 from .models import InvestorKyc
 from mynt_users.models import MyntUsers
 from .serializers import InvestorKycSerializer
+from mynt_users.authentication import SafeJWTAuthentication
 import random
 import math
 import datetime
@@ -471,3 +472,14 @@ class InvestorKycAadharApiView(APIView):
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
+
+class GetAllInvestorKycDetails(APIView):
+    permission_classes = [SafeJWTAuthentication]
+    
+    def get(self, request, *args, **kwargs):
+        try:
+            investorKyc = InvestorKyc.objects.filter()
+            serializer = InvestorKycSerializer(investorKyc, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

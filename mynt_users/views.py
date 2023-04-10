@@ -185,8 +185,11 @@ class MyntUserCreateApiview(APIView):
                 
                 # Admin User Create
                 if request.data.get('user_type') == 'ADMIN':
-                    hash_password = make_password(password=request.data.get('password'))
-                    data['password'] = hash_password
+                    if request.data.get('password'):
+                        hash_password = make_password(password=request.data.get('password'))
+                        data['password'] = hash_password
+                    else:
+                        return Response({"status":"false","message":"Password field is required."},status=status.HTTP_400_BAD_REQUEST)
                 else:
                     data['email_otp'] = generate_otp()
 
