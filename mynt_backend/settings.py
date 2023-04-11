@@ -157,8 +157,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3001",
     "https://mynt-ui.webmavericks.org",
     "http://mynt-ui.webmavericks.org",
-    "http://mynt-admin.webmavericks.org/",
-    "https://mynt-admin.webmavericks.org/"
+    "https://mynt-admin.webmavericks.org",
+    "http://mynt-admin.webmavericks.org"
 ]
 
 CORS_ORIGIN_ALLOW_ALL = False
