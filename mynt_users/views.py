@@ -38,7 +38,7 @@ class MyntUsersApiView(APIView):
             if request.data.get('nationality'):
                 user.nationality = request.data.get('nationality')
             user.save()
-            updated_user = MyntUsers.objects.get(email=request.data.get('email'))
+            updated_user = MyntUsers.objects.get(id=request.data.get('user_id'))
             serializer = MyntUsersSerializer(updated_user, many=False)
             return Response({"status":"true","message":"user updated successfully!","data":serializer.data}, status=status.HTTP_200_OK)
         except MyntUsers.DoesNotExist:
