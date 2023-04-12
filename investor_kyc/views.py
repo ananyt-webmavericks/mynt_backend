@@ -483,3 +483,84 @@ class GetAllInvestorKycDetails(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class UpdateInvestorKycApiView(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            investor_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
+
+            if request.data.get('pan_card'):
+                investor_kyc.pan_card = request.data.get('pan_card')
+
+            if request.data.get('pan_card_verified'):
+                investor_kyc.pan_card_verified = request.data.get('pan_card_verified')
+
+            if request.data.get('birth_date'):
+                investor_kyc.birth_date = request.data.get('birth_date')
+
+            if request.data.get('birth_month'):
+                investor_kyc.birth_month = request.data.get('birth_month')
+
+            if request.data.get('birth_year'):
+                investor_kyc.birth_year = request.data.get('birth_year')
+
+            if request.data.get('address_line_1'):
+                investor_kyc.address_line_1 = request.data.get('address_line_1')
+
+            if request.data.get('address_line_2'):
+                investor_kyc.address_line_2 = request.data.get('address_line_2')
+
+            if request.data.get('city'):
+                investor_kyc.city = request.data.get('city')
+
+            if request.data.get('state'):
+                investor_kyc.state = request.data.get('state')
+
+            if request.data.get('country'):
+                investor_kyc.country = request.data.get('country')
+
+            if request.data.get('pincode'):
+                investor_kyc.pincode = request.data.get('pincode')
+
+            if request.data.get('bank_name'):
+                investor_kyc.bank_name = request.data.get('bank_name')
+
+            if request.data.get('bank_account'):
+                investor_kyc.bank_account = request.data.get('bank_account')
+
+            if request.data.get('ifsc_code'):
+                investor_kyc.ifsc_code = request.data.get('ifsc_code')
+
+            if request.data.get('bank_account_verified'):
+                investor_kyc.bank_account_verified = request.data.get('bank_account_verified')
+
+            if request.data.get('linkedin_profile'):
+                investor_kyc.linkedin_profile = request.data.get('linkedin_profile')
+
+            if request.data.get('mobile_number'):
+                investor_kyc.mobile_number = request.data.get('mobile_number')
+
+            if request.data.get('mobile_number_otp'):
+                investor_kyc.mobile_number_otp = request.data.get('mobile_number_otp')
+
+            if request.data.get('mobile_number_verified'):
+                investor_kyc.mobile_number_verified = request.data.get('mobile_number_verified')
+
+            if request.data.get('aadhaar_card_number'):
+                investor_kyc.aadhaar_card_number = request.data.get('aadhaar_card_number')
+
+            if request.data.get('aadhaar_card_verified'):
+                investor_kyc.aadhaar_card_verified = request.data.get('aadhaar_card_verified')
+
+            investor_kyc.save()
+            updated_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
+            serializer = InvestorKycSerializer(updated_kyc, many=False)
+            return Response({"status":"true","message":"User kyc updated successfully!","data":serializer.data}, status=status.HTTP_200_OK)
+
+        except InvestorKyc.DoesNotExist:
+            return Response({"status":"false","message":"User Kyc Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        

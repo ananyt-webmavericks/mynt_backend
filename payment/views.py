@@ -8,7 +8,7 @@ from rest_framework import status
 from company.models import Company
 from .models import Payment
 from campaign.models import Campaign
-from .serializers import PaymentSerializer
+from .serializers import PaymentSerializer, InvestorPaymentSerializer
 from mynt_users.models import MyntUsers
 from investor_kyc.models import InvestorKyc
 from mynt_users.authentication import SafeJWTAuthentication
@@ -157,6 +157,21 @@ class GetAllPaymentDetails(APIView):
         try:
             payment = Payment.objects.filter()
             serializer = PaymentSerializer(payment, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class InvestorPaymentDetailApiView(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
+    def get(self, request, user_id):
+        try:
+            payment = Payment.objects.filter(user_id = user_id).all()
+
+            if payment.exists() == False:
+                return Response({"status":"false","message":"User's Payment Detail Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+            
+            serializer = InvestorPaymentSerializer(payment, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -11,7 +11,7 @@ class DealTerms(models.Model):
     id = models.BigAutoField(primary_key=True)
     campaign_id = models.ForeignKey(Campaign , on_delete=models.CASCADE)
     security_type = models.ForeignKey(DealType, on_delete=models.CASCADE)
-    discount = models.CharField(max_length=2)
+    discount = models.CharField(max_length=3)
     valuation_cap = models.CharField(max_length=12)
     min_subscription = models.CharField(max_length=12)
     target = models.CharField(max_length=12)

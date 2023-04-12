@@ -9,7 +9,7 @@ from company.models import Company
 from campaign.models import Campaign
 from .models import DealTerms
 from deal_type.models import DealType
-from .serializers import DealTermsSerializer
+from .serializers import DealTermsSerializer, DealTermsRefrenceSerializer
 from mynt_users.models import MyntUsers
 from mynt_users.authentication import SafeJWTAuthentication
 import datetime
@@ -49,7 +49,7 @@ class DealTermsApiView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             dealterms = DealTerms.objects.filter()
-            serializer = DealTermsSerializer(dealterms, many=True)
+            serializer = DealTermsRefrenceSerializer(dealterms, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
