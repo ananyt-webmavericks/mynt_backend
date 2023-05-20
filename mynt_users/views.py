@@ -69,8 +69,14 @@ class EmailVerifyView(APIView):
                     updated_user = MyntUsers.objects.get(email=request.data.get('email'))
                     serializer = MyntUsersSerializer(updated_user, many=False)
                     refresh = RefreshToken.for_user(user=user)
-
-                    return Response({"status":"true","message":"OTP verified!","data":serializer.data,
+                    data = serializer.data
+                    if updated_user.user_type == 'FOUNDER':
+                        company = Company.objects.filter(user_id=updated_user.id).first()
+                        if company is None:
+                            data['company_id'] = "User has Doesn't Exist Company!"
+                        else:
+                            data['company_id'] = company.id
+                    return Response({"status":"true","message":"OTP verified!","data":data,
                                      "access_token": str(refresh.access_token),
                                      "refresh_token": str(refresh)},status=status.HTTP_200_OK)
                 return Response({"status":"false","message":"Invalid OTP!"},status=status.HTTP_200_OK)
