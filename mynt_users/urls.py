@@ -1,7 +1,7 @@
 
 from django.urls import path
 
-from mynt_users.views import MyntUsersApiView,EmailVerifyView,SendOTPOnMail,GetUserById,LoginUserByEmail, MyntUserCreateApiview
+from mynt_users.views import MyntUsersApiView,EmailVerifyView,SendOTPOnMail,GetUserById,LoginUserByEmail, MyntUserCreateApiview, SecondaryEmailVerifyView
 from .utils import UploadFiles
 urlpatterns = [
     path('manage', MyntUsersApiView.as_view()),
@@ -11,4 +11,5 @@ urlpatterns = [
     path('login', LoginUserByEmail.as_view()),
     path('sign-up', MyntUserCreateApiview.as_view()),
     path('upload-files', UploadFiles.as_view()),
+    path('secondary-email-verify', SecondaryEmailVerifyView.as_view()),
 ]

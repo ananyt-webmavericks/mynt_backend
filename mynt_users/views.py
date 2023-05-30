@@ -30,9 +30,16 @@ class MyntUsersApiView(APIView):
             user = MyntUsers.objects.get(id=request.data.get('user_id'))
             if request.data.get('profile_image'):
                 user.profile_image = request.data.get('profile_image')
-            if request.data.get('email'):
-                user.email = request.data.get('email')
-                user.email_verified = False
+            if request.data.get('secondary_email'):
+                secondary_email = request.data.get('secondary_email')
+                all_users = MyntUsers.objects
+                email_check = all_users.filter(email=secondary_email).exists()
+
+                if user.email == request.data.get('secondary_email') or email_check:
+                    return Response({"status":"false","message":"User Email already Exist!"},status=status.HTTP_404_NOT_FOUND)
+                
+                user.secondary_email = request.data.get('secondary_email')
+                user.secondary_email_verified = False
             if request.data.get('country'):
                 user.country = request.data.get('country')
             if request.data.get('nationality'):
@@ -86,19 +93,55 @@ class EmailVerifyView(APIView):
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class SecondaryEmailVerifyView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            user = MyntUsers.objects.get(secondary_email=request.data.get('email'))
+            if request.data.get('otp'):
+                otp = request.data.get('otp')
+                if(otp == user.secondary_email_otp):
+                    user.secondary_email_verified = True
+                    user.email = request.data.get('email')
+                    user.save()
+                    updated_user = MyntUsers.objects.get(email=request.data.get('email'))
+                    serializer = MyntUsersSerializer(updated_user, many=False)
+                    data = serializer.data
+                    
+                    return Response({"status":"true","message":"Email Updated successfully!","data":data,},status=status.HTTP_200_OK)
+                return Response({"status":"false","message":"Invalid OTP!"},status=status.HTTP_200_OK)
+            return Response({"status":"false","message":"otp can not be empty!"},status=status.HTTP_400_BAD_REQUEST)
+        except MyntUsers.DoesNotExist:
+            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class SendOTPOnMail(APIView):
     def post(self, request, *args, **kwargs):
         try:
-            user = MyntUsers.objects.get(email=request.data.get('email'))
-            #add logic to send email templates
-            user.email_otp = generate_otp()
-            user.email_verified = False
-            user.save()  
+            if request.data.get('email'):
+                user = MyntUsers.objects.get(email=request.data.get('email'))
+                #add logic to send email templates
+                user.email_otp = generate_otp()
+                user.email_verified = False
+                user.save() 
+                otp = user.email_otp
+                email = user.email
+            elif(request.data.get('secondary_email')):
+                user = MyntUsers.objects.get(secondary_email=request.data.get('secondary_email'))
+                #add logic to send email templates
+                user.secondary_email_otp = generate_otp()
+                user.secondary_email_verified = False
+                user.save()
+                otp = user.secondary_email_otp
+                email = user.secondary_email
+
+
             #send email to User for OTP
             context = {
                     'name' : user.first_name,
-                    'otp':user.email_otp}
-            send_mail(template_name='verification.html',context=context,email=user.email,name=f"{user.first_name} {user.last_name}",subject="Verification Code",text_part=f"Verification Code {user.email}")
+                    'otp':otp}
+            send_mail(template_name='verification.html',context=context,email=email,name=f"{user.first_name} {user.last_name}",subject="Verification Code",text_part=f"Verification Code {email}")
             
             return Response({"status":"true","message":"OTP sent successfully!!"},status=status.HTTP_200_OK)
         except MyntUsers.DoesNotExist:
