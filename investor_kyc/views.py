@@ -257,18 +257,20 @@ class InvestorKycMobileApiView(APIView):
         try:
             user = MyntUsers.objects.get(id = request.data.get('user_id'))
             investor_kyc = InvestorKyc.objects.filter(user_id = request.data.get('user_id'))
+            mobile_number=request.data.get('mobile_number')
+            otp=generate_otp()
             if investor_kyc:
                 return Response({"status":"false","message":"investor kyc already exists!"}, status=status.HTTP_400_BAD_REQUEST)
             data = {
-                "mobile_number":request.data.get('mobile_number'),
-                "mobile_number_otp":generate_otp(),
+                "mobile_number":mobile_number,
+                "mobile_number_otp":otp,
                 "user_id":user.id,
                 "created_at":datetime.datetime.now(),
             }
             serializer = InvestorKycSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
-                ## ADD LOGIC TO SEND OTP
+                send_mobile_otp_on_mobile(mobile_number,otp)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except MyntUsers.DoesNotExist:
@@ -280,11 +282,13 @@ class InvestorKycMobileApiView(APIView):
     def patch(self, request, *args, **kwargs):
         try :
             investor_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
-            investor_kyc.mobile_number  = request.data.get('mobile_number')
-            investor_kyc.mobile_number_otp = generate_otp()
+            mobile_number=request.data.get('mobile_number')
+            otp = generate_otp()
+            investor_kyc.mobile_number  = mobile_number
+            investor_kyc.mobile_number_otp = otp
             investor_kyc.save()
             updated_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
-            ## ADD LOGIC TO SEND OTP
+            send_mobile_otp_on_mobile(mobile_number,otp)
             serializer = InvestorKycSerializer(updated_kyc, many=False)
             return Response({"status":"true","message":"user kyc updated successfully!","data":serializer.data}, status=status.HTTP_200_OK)
         except InvestorKyc.DoesNotExist:
@@ -306,10 +310,12 @@ class SendMobileOtp(APIView):
     def post(self, request, *args, **kwargs):
         try:
             investor_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
-            investor_kyc.mobile_number = request.data.get('mobile_number')
-            investor_kyc.mobile_number_otp = generate_otp()
+            mobile_number = request.data.get('mobile_number')
+            otp = generate_otp()
+            investor_kyc.mobile_number = mobile_number
+            investor_kyc.mobile_number_otp = otp
             investor_kyc.save()
-            ## ADD LOGIC TO SEND OTP
+            send_mobile_otp_on_mobile(mobile_number,otp)
             updated_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
             serializer = InvestorKycSerializer(updated_kyc, many=False)
             return Response({"status":"true","message":"user kyc updated successfully!","data":serializer.data}, status=status.HTTP_200_OK)
@@ -327,7 +333,6 @@ class VerifyMobileOtp (APIView):
             if otp == investor_kyc.mobile_number_otp:
                 investor_kyc.mobile_number_verified = True
                 investor_kyc.save()
-                ## ADD LOGIC TO SEND OTP
                 updated_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
                 serializer = InvestorKycSerializer(updated_kyc, many=False)
                 return Response({"status":"true","message":"otp verified successfully!","data":serializer.data}, status=status.HTTP_200_OK)
@@ -378,7 +383,6 @@ class InvestorKycAddressApiView (APIView):
                 investor_kyc.pincode = request.data.get('pincode')
             investor_kyc.save()
             updated_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
-            ## ADD LOGIC TO SEND OTP
             serializer = InvestorKycSerializer(updated_kyc, many=False)
             return Response({"status":"true","message":"user kyc updated successfully!","data":serializer.data}, status=status.HTTP_200_OK)
         except InvestorKyc.DoesNotExist:
@@ -563,4 +567,25 @@ class UpdateInvestorKycApiView(APIView):
             return Response({"status":"false","message":"User Kyc Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+
+
+def send_mobile_otp_on_mobile(mobile_number,otp):
+    try:
+        url = env("MSG91_URL")
+        payload = json.dumps({
+            "template_id": env("MSG91_TEMPLATE_ID"),
+            "sender": env("MSG91_SENDER_ID"),
+            "short_url": "0",
+            "mobiles": mobile_number,
+            "otp": otp
+        })
+        print(payload)
+        headers = {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'authkey': env("MSG91_TOKEN")
+        }
+        response = requests.request("POST", url, headers=headers, data=payload)
+        print(response.text)
+    except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
