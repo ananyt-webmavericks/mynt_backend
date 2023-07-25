@@ -20,7 +20,10 @@ class MyntUsersApiView(APIView):
     permission_classes = [SafeJWTAuthentication]
 
     def get (self, request, *args, **kwargs):
+        filter = request.GET.get('user_type')
         users = MyntUsers.objects.filter()
+        if(filter):
+            users = MyntUsers.objects.filter(user_type=filter)
         serializer = MyntUsersSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -275,5 +278,18 @@ class MyntUserCreateApiview(APIView):
                 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetUsersCount(APIView):
+    def get(self, request, *args, **kwargs):
+        try :
+            user_type=request.GET.get('user_type')
+            count = MyntUsers.objects.filter(user_type=user_type).count()
+            data = {
+                "count":count
+            }
+            return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

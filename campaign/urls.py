@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import CampaignApiView, CampaignByCompanyId, GetCmapaignById, GetAllCmapaignByStatus, GetCampaignWithAllDataByCampaignId
+from .views import CampaignApiView, CampaignByCompanyId, GetCmapaignById, GetAllCmapaignByStatus, GetCampaignWithAllDataByCampaignId,GetCampaignsCount
 
 urlpatterns = [
     path('manage', CampaignApiView.as_view()),
@@ -8,4 +8,5 @@ urlpatterns = [
     path('campaign-by-id/<int:id>', GetCmapaignById.as_view()),
     path('campaign-by-status', GetAllCmapaignByStatus.as_view()),
     path('campaign-with-all-data-by-campaign-id/<int:id>', GetCampaignWithAllDataByCampaignId.as_view()),
+    path('count', GetCampaignsCount.as_view()),
 ]

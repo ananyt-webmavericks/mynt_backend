@@ -155,3 +155,18 @@ class GetCampaignWithAllDataByCampaignId(APIView):
             return Response({"status":"false","message":"Campaign Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetCampaignsCount(APIView):
+    permission_classes = [SafeJWTAuthentication]
+    def get(self, request, *args, **kwargs):
+        try:
+            campaignStatus=request.GET.get('status')
+            count = Campaign.objects.filter(status=campaignStatus).count()
+            data = {
+                "count":count
+            }
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

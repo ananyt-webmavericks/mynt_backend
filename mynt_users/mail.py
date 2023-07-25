@@ -11,14 +11,14 @@ environ.Env.read_env()
 def send_mail(template_name, context, email, name, subject, text_part):
     try:
         html = render_to_string(template_name, context)
-        api_key = "5e1fb5315223146aa61e51286d723328"
-        api_secret = "80cb3e4f71079a3d2d19aa28596d456e"
+        api_key = env("MJ_APIKEY_PUBLIC")
+        api_secret = env("MJ_APIKEY_PRIVATE")
         mailjet = Client(auth=(api_key, api_secret), version='v3.1')
         data = {
         'Messages': [
             {
             "From": {
-                "Email": "ananya@thesoftcoders.com",
+                "Email": env("METEOR_EMAIL"),
                 "Name": "Meteor Ventures"
             },
             "To": [
