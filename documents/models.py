@@ -22,5 +22,6 @@ class Documents(models.Model):
     document_name = models.CharField(max_length=100)
     agreement_status = models.CharField(choices=AGREEMENT_STATUS_CHOICES , max_length=200, null=True)
     document_url = models.TextField(null=True)
+    contract_id = models.TextField(null=True)
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField(auto_now=True)
