@@ -235,4 +235,16 @@ def initiate_contract_with_signzy(contract_name ,signer_name , signer_email , re
 
 class SignzyContractCallback(APIView):
     def post(self, request, *args, **kwargs):
-        print(request.data)
+        try:
+            contract_id = request.data.get("contractId")
+            document = Documents.objects.get(contract_id=contract_id)
+            print(document)
+            document.document_url = request.data.get('finalSignedContract')
+            document.agreement_status = "SIGNED BY FOUNDER"
+            document.save()
+            return Response(status=status.HTTP_200_OK)
+        except Documents.DoesNotExist:
+            return Response({"status":"false","message":"Document Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(e)
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
