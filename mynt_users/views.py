@@ -259,7 +259,7 @@ class MyntUserCreateApiview(APIView):
                 #Send the Welcome Email
                 context = {
                         'name' : request.data.get('first_name') }
-                send_mail(template_name='welcome_mail.html',context=context,email=request.data.get('email'),name=f"{request.data.get('first_name')} {request.data.get('last_name')}",subject="Welcome to Mynt invest",text_part=f"Welcome to Mynt invest {request.data.get('email')}")
+                send_mail(template_name='welcome_mail.html',context=context,email=request.data.get('email'),name=f"{request.data.get('first_name')} {request.data.get('last_name')}",subject="Welcome to Mynt Invest",text_part=f"Welcome to Mynt Invest {request.data.get('email')}")
                 
                 # If social login is True raise the token
                 if(request.data.get('social_login') is True):

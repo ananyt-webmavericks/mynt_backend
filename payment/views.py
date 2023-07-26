@@ -18,6 +18,7 @@ import http.client
 import json
 import environ
 import requests
+from .mail import send_mail
 
 env = environ.Env()
 environ.Env.read_env()
@@ -30,6 +31,9 @@ class CreateOrder(APIView):
             user = MyntUsers.objects.get(id = request.data.get('user_id'))
             campaign = Campaign.objects.get(id = request.data.get('campaign_id'))
 
+            if campaign.status != "LIVE":
+                return Response({"status":"false","message":"Campaign is not Live anymore!"},status=status.HTTP_404_NOT_FOUND)
+
             #Check User KYC is completed or not
             investor_kyc = InvestorKyc.objects.filter(user_id = user.id).first()
             if investor_kyc:
@@ -37,6 +41,11 @@ class CreateOrder(APIView):
                     return Response({"status":"false","message":"Complete your KYC first."},status=status.HTTP_404_NOT_FOUND)
             else:
                 return Response({"status":"false","message":"KYC is pending."},status=status.HTTP_404_NOT_FOUND)
+            
+            payment = Payment.objects.filter(user_id=request.data.get('user_id'),campaign_id=request.data.get('campaign_id') , status="COMPLETED" ).first()
+
+            if payment:
+                return Response({"status":"false","message":"Already Invested in this Campaign!"},status=status.HTTP_400_BAD_REQUEST)
            
             ms = datetime.datetime.now()
             total_amount = request.data.get("total_amount")
@@ -54,7 +63,6 @@ class CreateOrder(APIView):
             serializer = PaymentSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
-                
                 cashfree_order_id , payment_session_id = call_cashfree(user,total_amount,order_id,mobile_number)
                 payment = Payment.objects.filter(mynt_order_id=order_id).first()
                 if payment:
@@ -69,6 +77,7 @@ class CreateOrder(APIView):
         except MyntUsers.DoesNotExist:
             return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            print(e)
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -106,6 +115,24 @@ class SuccessWebhook(APIView):
                 payment.save()
                 updated_payment = Payment.objects.filter(mynt_order_id = order_data['order_id']).first()
                 serializer = PaymentSerializer(updated_payment, many=False)
+                user = MyntUsers.objects.filter(id=payment.user_id).first()
+                campaign = Campaign.objects.filter(id=payment.campaign_id).first()
+                company = Company.objects.filter(id=campaign.company_id).first()
+                context = {
+                    "investor_name":f"{user.first_name} {user.last_name}",
+                    "company_name":company.company_name
+                }
+
+                failed_context = {
+                    "investor_name":f"{user.first_name} {user.last_name}",
+                    "company_name":company.company_name,
+                    "investment_amount":payment.amount
+                }
+
+                if payment_data['payment_status'] == "SUCCESS":
+                    send_mail(template_name='contract.html',context=context,email=user.email,name=f"{user.first_name} {user.last_name}",subject="Payment Confirmation For Investment on Mynt",text_part=f"Payment Confirmation For Investment on Mynt {user.email}")
+                else:
+                    send_mail(template_name='payment_failed.html',context=failed_context,email=user.email,name=f"{user.first_name} {user.last_name}",subject="Payment Failed For Investment on Mynt",text_part=f"Payment Failed For Investment on Mynt {user.email}")
                 return Response({"status":"true","message":"Payment updated successfully!","data":serializer.data}, status=status.HTTP_200_OK)
 
             else:
@@ -128,7 +155,7 @@ def call_cashfree(user,total_amount,order_id,mobile_number):
             "customer_id": str(user.id),
             "customer_name": str(user.first_name),
             "customer_email": str(user.email),
-            "customer_phone": str(mobile_number)
+            "customer_phone": f"+{mobile_number}"
         },
         "order_meta": {
             "return_url": env('CASHFREE_RETURN_URL'),
@@ -136,6 +163,7 @@ def call_cashfree(user,total_amount,order_id,mobile_number):
         },
         "order_note": "enrollment"
         })
+
         headers = {
         'x-api-version': env('CASHFREE_APP_VERSION'),
         'x-client-id': env('CASHFREE_CLIENT_ID'),
