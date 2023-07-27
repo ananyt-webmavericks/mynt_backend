@@ -15,6 +15,7 @@ import datetime
 from mynt_users.authentication import SafeJWTAuthentication
 from django.contrib.auth.hashers import check_password, make_password
 from .mail import send_mail
+from payment.models import Payment
 
 class MyntUsersApiView(APIView):
     permission_classes = [SafeJWTAuthentication]
@@ -292,4 +293,28 @@ class GetUsersCount(APIView):
             }
             return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetUserPortfolio(APIView):
+    def get(self, request, id):
+        try:
+            print()
+            user = MyntUsers.objects.get(id=id)
+            payments = Payment.objects.filter(user_id=user.id , status = "COMPLETED")
+            data = []
+            for payment in payments:
+                result = {
+                    "company_logo":payment.campaign_id.company_id.company_logo,
+                    "company_name":payment.campaign_id.company_id.company_name,
+                    "amount":payment.amount,
+                    "enrollment_date":payment.updated_at,
+                    "documents":[]
+                }
+                data.append(result)
+            return Response(data, status=status.HTTP_200_OK)
+        except MyntUsers.DoesNotExist:
+            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(e)
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
