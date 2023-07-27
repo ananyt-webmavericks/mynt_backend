@@ -331,7 +331,10 @@ class GetAgreementStatus(APIView):
             if company.status != "ACTIVE":
                 return Response({"status":"false","message":"Your Company is Under Review!"},status=status.HTTP_400_BAD_REQUEST)
             document = Documents.objects.filter(company_id=company.id,document_type="AGREEMENTS").first()
-            data = {
+            if document is None:
+                data = {}
+            else:
+                data = {
                 "agreement_status":document.agreement_status,
                 "document_url":document.document_url
             }
