@@ -111,7 +111,7 @@ class GetDocumentsbyCompanyId(APIView):
 
     def get(self, request, id):
         try:
-            documents = Documents.objects.filter(company_id = id).all()
+            documents = Documents.objects.filter(company_id = id ,document_type="DOCUMENTS" ).all()
             if documents:
                 serializer = DocumentsSerializer(documents, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -236,6 +236,7 @@ def initiate_contract_with_signzy(contract_name ,signer_name , signer_email , re
 class SignzyContractCallback(APIView):
     def post(self, request, *args, **kwargs):
         try:
+            print(request.data)
             contract_id = request.data.get("contractId")
             document = Documents.objects.get(contract_id=contract_id)
             print(document)
