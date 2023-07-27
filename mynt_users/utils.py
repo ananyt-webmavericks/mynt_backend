@@ -21,7 +21,8 @@ class UploadFiles(APIView):
             #create url for file
             base_url = request.build_absolute_uri('/')[:-1]
             url = f"{base_url}{file_url}"
-
+            print(url)
             return Response({"status":"true","message": str(url)},status=status.HTTP_200_OK)
         except Exception as e:
+            print(e)
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

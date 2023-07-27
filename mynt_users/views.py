@@ -331,11 +331,14 @@ class GetAgreementStatus(APIView):
             if company.status != "ACTIVE":
                 return Response({"status":"false","message":"Your Company is Under Review!"},status=status.HTTP_400_BAD_REQUEST)
             document = Documents.objects.filter(company_id=company.id,document_type="AGREEMENTS").first()
-            result = {
-                "document":document
+            data = {
+                "agreement_status":document.agreement_status,
+                "document_url":document.document_url
             }
-            return Response(result, status=status.HTTP_200_OK)
+            return Response({"result":data}, status=status.HTTP_200_OK)
         except MyntUsers.DoesNotExist:
+            print(e)
             return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            print(e)
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
