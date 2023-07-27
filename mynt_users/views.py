@@ -16,6 +16,7 @@ from mynt_users.authentication import SafeJWTAuthentication
 from django.contrib.auth.hashers import check_password, make_password
 from .mail import send_mail
 from payment.models import Payment
+from documents.models import Documents
 
 class MyntUsersApiView(APIView):
     permission_classes = [SafeJWTAuthentication]
@@ -299,7 +300,6 @@ class GetUsersCount(APIView):
 class GetUserPortfolio(APIView):
     def get(self, request, id):
         try:
-            print()
             user = MyntUsers.objects.get(id=id)
             payments = Payment.objects.filter(user_id=user.id , status = "COMPLETED")
             data = []
@@ -312,9 +312,30 @@ class GetUserPortfolio(APIView):
                     "documents":[]
                 }
                 data.append(result)
-            return Response(data, status=status.HTTP_200_OK)
+            result = {
+                "data":data
+            }
+            return Response(result, status=status.HTTP_200_OK)
         except MyntUsers.DoesNotExist:
             return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            print(e)
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class GetAgreementStatus(APIView):
+    def get(self,request,id):
+        try:
+            user = MyntUsers.objects.get(id=id)
+            if user.user_type != "FOUNDER":
+                return Response({"status":"false","message":"User type is not Founder!"},status=status.HTTP_400_BAD_REQUEST)
+            company = Company.objects.filter(user_id=user.id).first()
+            if company.status != "ACTIVE":
+                return Response({"status":"false","message":"Your Company is Under Review!"},status=status.HTTP_400_BAD_REQUEST)
+            document = Documents.objects.filter(company_id=company.id,document_type="AGREEMENTS").first()
+            result = {
+                "document":document
+            }
+            return Response(result, status=status.HTTP_200_OK)
+        except MyntUsers.DoesNotExist:
+            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

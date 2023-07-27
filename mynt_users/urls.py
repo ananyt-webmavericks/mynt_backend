@@ -1,7 +1,7 @@
 
 from django.urls import path
 
-from mynt_users.views import MyntUsersApiView,EmailVerifyView,SendOTPOnMail,GetUserById,LoginUserByEmail, MyntUserCreateApiview, SecondaryEmailVerifyView,GetUsersCount,GetUserPortfolio
+from mynt_users.views import MyntUsersApiView,EmailVerifyView,SendOTPOnMail,GetUserById,LoginUserByEmail, MyntUserCreateApiview, SecondaryEmailVerifyView,GetUsersCount,GetUserPortfolio,GetAgreementStatus
 from .utils import UploadFiles
 urlpatterns = [
     path('manage', MyntUsersApiView.as_view()),
@@ -14,4 +14,5 @@ urlpatterns = [
     path('secondary-email-verify', SecondaryEmailVerifyView.as_view()),
     path('count', GetUsersCount.as_view()),
     path('fetch-portfolio/<int:id>', GetUserPortfolio.as_view()),
+    path('fetch-agreement/<int:id>', GetAgreementStatus.as_view()),
 ]
