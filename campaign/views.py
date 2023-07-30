@@ -54,31 +54,34 @@ class CampaignApiView(APIView):
         try:
             campaigns = Campaign.objects.filter(status="LIVE")
             result = []
-            for campaign in campaigns:
-                campaign_serialiser = CampaignSerializer(campaign, many=False)
-                company_details = Company.objects.get(id=campaign.company_id.id)
-                company_serialiser = CompanySerializers(company_details,many=False)
-                deal_terms = DealTerms.objects.filter(campaign_id=campaign.id).first()
-                deal_terms_serialiser = DealTermsSerializer(deal_terms,many=False)
-                deal_type = deal_terms.security_type
-                deal_type_serialiser = DealTypeSerializer(deal_type,many=False)
-                payments = Payment.objects.filter(campaign_id=campaign.id,status="COMPLETED")
-                total_invested = 0
-                total_investors = 0
-                for payment in payments:
-                    total_invested = payment.amount + total_invested
-                    total_investors = total_investors + 1
-                total_raised = (total_invested / int(deal_terms.target))/100
-                data = {
-                    "campaign":campaign_serialiser.data,
-                    "company":company_serialiser.data,
-                    "deal_terms":deal_terms_serialiser.data,
-                    "deal_type":deal_type_serialiser.data,
-                    "total_investors":total_investors,
-                    "total_raised":total_raised
-                }
-                result.append(data)
-            return Response({"status":"true","data":result}, status=status.HTTP_200_OK)
+            if campaigns:
+                for campaign in campaigns:
+                    campaign_serialiser = CampaignSerializer(campaign, many=False)
+                    company_details = Company.objects.get(id=campaign.company_id.id)
+                    company_serialiser = CompanySerializers(company_details,many=False)
+                    deal_terms = DealTerms.objects.filter(campaign_id=campaign.id).first()
+                    deal_terms_serialiser = DealTermsSerializer(deal_terms,many=False)
+                    deal_type = deal_terms.security_type
+                    deal_type_serialiser = DealTypeSerializer(deal_type,many=False)
+                    payments = Payment.objects.filter(campaign_id=campaign.id,status="COMPLETED")
+                    total_invested = 0
+                    total_investors = 0
+                    for payment in payments:
+                        total_invested = payment.amount + total_invested
+                        total_investors = total_investors + 1
+                    total_raised = (total_invested / int(deal_terms.target))/100
+                    data = {
+                        "campaign":campaign_serialiser.data,
+                        "company":company_serialiser.data,
+                        "deal_terms":deal_terms_serialiser.data,
+                        "deal_type":deal_type_serialiser.data,
+                        "total_investors":total_investors,
+                        "total_raised":total_raised
+                    }
+                    result.append(data)
+                return Response({"status":"true","data":result}, status=status.HTTP_200_OK)
+            else:
+                return Response({"status":"true","data":[]}, status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -208,4 +211,16 @@ class GetCampaignsCount(APIView):
             return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetCampaignForAdmin(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
+    def get(self,res,*args, **kwargs):
+        try:
+            campaign = Campaign.objects.filter()
+            serializer = CampaignSerializer(campaign, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
