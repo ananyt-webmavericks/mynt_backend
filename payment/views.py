@@ -46,6 +46,10 @@ class CreateOrder(APIView):
 
             if payment:
                 return Response({"status":"false","message":"Already Invested in this Campaign!"},status=status.HTTP_400_BAD_REQUEST)
+            
+            payment = Payment.objects.filter(user_id=request.data.get('user_id'),campaign_id=request.data.get('campaign_id') , status="PENDING" ).first()
+            if payment:
+                return Response({"status":"false","message":"Please wait while we confirm the payment status!!"},status=status.HTTP_400_BAD_REQUEST)
            
             ms = datetime.datetime.now()
             total_amount = request.data.get("total_amount")
@@ -147,6 +151,8 @@ def call_cashfree(user,total_amount,order_id,mobile_number):
 
         url = f"{env('CASHFREE_ENDPOINT')}orders"
 
+        print(url)
+
         payload = json.dumps({
         "order_id": order_id,
         "order_amount": total_amount,
@@ -171,8 +177,12 @@ def call_cashfree(user,total_amount,order_id,mobile_number):
         'Content-Type': 'application/json'
         }
 
+        print(payload)
+        print(headers)
+
         response = requests.request("POST", url, headers=headers, data=payload)
         data = response.json()
+        print(data)
         
         return data['cf_order_id'], data['payment_session_id']
     except Exception as e:

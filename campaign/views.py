@@ -12,6 +12,13 @@ from .serializers import CampaignSerializer, CampaignSerializerWithCompanySerial
 from deal_terms.models import DealTerms
 from mynt_users.models import MyntUsers
 import datetime
+from documents.models import Documents
+from company.models import Company
+from company.serializers import CompanySerializers
+from deal_terms.models import DealTerms
+from deal_terms.serializers import DealTermsSerializer
+from payment.models import Payment
+from deal_type.serializers import DealTypeSerializer
 
 
 class CampaignApiView(APIView):
@@ -20,6 +27,13 @@ class CampaignApiView(APIView):
     def post(self, request, *args, **kwargs):
         try:
             company = Company.objects.get(id = request.data.get('company_id'))
+
+            if company.status == "INACTIVE":
+                return Response({"status":"false","message":"Company is Under Review yet!!"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            document = Documents.objects.filter(company_id=request.data.get('company_id') ,agreement_status="SIGNED BY FOUNDER" )
+            if document is None:
+                return Response({"status":"false","message":"Please wait for Agreements to be Completed!!"}, status=status.HTTP_400_BAD_REQUEST)
             
             data = {
                 "company_id":company.id,
@@ -38,10 +52,35 @@ class CampaignApiView(APIView):
         
     def get(self, request, *args, **kwargs):
         try:
-            campaign = Campaign.objects.filter()
-            serializer = CampaignSerializer(campaign, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            campaigns = Campaign.objects.filter(status="LIVE")
+            result = []
+            for campaign in campaigns:
+                campaign_serialiser = CampaignSerializer(campaign, many=False)
+                company_details = Company.objects.get(id=campaign.company_id.id)
+                company_serialiser = CompanySerializers(company_details,many=False)
+                deal_terms = DealTerms.objects.filter(campaign_id=campaign.id).first()
+                deal_terms_serialiser = DealTermsSerializer(deal_terms,many=False)
+                deal_type = deal_terms.security_type
+                deal_type_serialiser = DealTypeSerializer(deal_type,many=False)
+                payments = Payment.objects.filter(campaign_id=campaign.id,status="COMPLETED")
+                total_invested = 0
+                total_investors = 0
+                for payment in payments:
+                    total_invested = payment.amount + total_invested
+                    total_investors = total_investors + 1
+                total_raised = (total_invested / int(deal_terms.target))/100
+                data = {
+                    "campaign":campaign_serialiser.data,
+                    "company":company_serialiser.data,
+                    "deal_terms":deal_terms_serialiser.data,
+                    "deal_type":deal_type_serialiser.data,
+                    "total_investors":total_investors,
+                    "total_raised":total_raised
+                }
+                result.append(data)
+            return Response({"status":"true","data":result}, status=status.HTTP_200_OK)
         except Exception as e:
+            print(e)
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     def patch(self, request, *args, **kwargs):
