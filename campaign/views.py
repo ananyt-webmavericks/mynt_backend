@@ -141,7 +141,7 @@ class CampaignByCompanyId(APIView):
         try:
             campaigns = Campaign.objects.filter(company_id = id).all()
 
-            if campaign:
+            if campaigns:
                 result = []
                 for campaign in campaigns:
                     campaign_serialiser = CampaignSerializer(campaign, many=False)
