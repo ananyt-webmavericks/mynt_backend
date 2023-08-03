@@ -61,15 +61,22 @@ class CampaignApiView(APIView):
                     company_serialiser = CompanySerializers(company_details,many=False)
                     deal_terms = DealTerms.objects.filter(campaign_id=campaign.id).first()
                     deal_terms_serialiser = DealTermsSerializer(deal_terms,many=False)
-                    deal_type = deal_terms.security_type
+                    target = 0
+                    if deal_terms is None:
+                        deal_type = None
+                    else:
+                        deal_type = deal_terms.security_type
+                        target = int(deal_terms.target)
                     deal_type_serialiser = DealTypeSerializer(deal_type,many=False)
                     payments = Payment.objects.filter(campaign_id=campaign.id,status="COMPLETED")
                     total_invested = 0
                     total_investors = 0
+                    total_raised = 0
                     for payment in payments:
                         total_invested = int(payment.amount) + total_invested
                         total_investors = total_investors + 1
-                    total_raised = (total_invested / int(deal_terms.target))*100
+                    if target !=0:
+                        total_raised = (total_invested / target)*100
                     data = {
                         "campaign":campaign_serialiser.data,
                         "company":company_serialiser.data,
@@ -78,7 +85,7 @@ class CampaignApiView(APIView):
                         "total_investors":total_investors,
                         "total_raised":total_raised
                     }
-                    result.append(data)
+                    result.append(data)    
                 return Response({"status":"true","data":result}, status=status.HTTP_200_OK)
             else:
                 return Response({"status":"true","data":[]}, status=status.HTTP_200_OK)
@@ -149,15 +156,22 @@ class CampaignByCompanyId(APIView):
                     company_serialiser = CompanySerializers(company_details,many=False)
                     deal_terms = DealTerms.objects.filter(campaign_id=campaign.id).first()
                     deal_terms_serialiser = DealTermsSerializer(deal_terms,many=False)
-                    deal_type = deal_terms.security_type
+                    target = 0
+                    if deal_terms is None:
+                        deal_type = None
+                    else:
+                        deal_type = deal_terms.security_type
+                        target = int(deal_terms.target)
                     deal_type_serialiser = DealTypeSerializer(deal_type,many=False)
                     payments = Payment.objects.filter(campaign_id=campaign.id,status="COMPLETED")
                     total_invested = 0
                     total_investors = 0
+                    total_raised = 0
                     for payment in payments:
                         total_invested = int(payment.amount) + total_invested
                         total_investors = total_investors + 1
-                    total_raised = (total_invested / int(deal_terms.target))*100
+                    if target !=0:
+                        total_raised = (total_invested / target)*100
                     data = {
                         "campaign":campaign_serialiser.data,
                         "company":company_serialiser.data,
