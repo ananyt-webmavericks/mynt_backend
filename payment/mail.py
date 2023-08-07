@@ -35,8 +35,8 @@ def send_mail(template_name, context, email, name, subject, text_part):
         ]
         }
         result = mailjet.send.create(data=data)
-        # print(result.status_code)
-        # print(result.json())
+        print(result.status_code)
+        print(result.json())
     
     except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

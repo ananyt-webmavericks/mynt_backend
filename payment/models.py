@@ -8,6 +8,11 @@ PAYMENT_STATUSES = (
     ("FAILED","FAILED")
 )
 
+PAYMENT_MODE = (
+    ("ONLINE","ONLINE"),
+    ("OFFLINE","OFFLINE")
+)
+
 from campaign.models import Campaign
 from mynt_users.models import MyntUsers
 
@@ -21,5 +26,7 @@ class Payment(models.Model):
     total_amount = models.CharField(max_length=5, null=True)
     status = models.CharField(choices=PAYMENT_STATUSES,max_length=10,default="PENDING")
     payment_session_id = models.TextField(null=True)
+    payment_mode = models.CharField(choices=PAYMENT_MODE,max_length=10,default="ONLINE")
+    transaction_id =models.TextField(null=True)
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField(auto_now=True)

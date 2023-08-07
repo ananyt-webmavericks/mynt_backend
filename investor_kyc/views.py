@@ -589,3 +589,80 @@ def send_mobile_otp_on_mobile(mobile_number,otp):
         print(response.text)
     except Exception as e:
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AdminManageKyc(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user = MyntUsers.objects.get(id=request.data.get('user_id'))
+            data = {
+                "user_id":user.id,
+                "pan_card":request.data.get('pan_card'),
+                "pan_card_verified":request.data.get('pan_card_verified'),
+                "birth_date":request.data.get('birth_date'),
+                "birth_month":request.data.get('birth_month'),
+                "birth_year":request.data.get('birth_year'),
+                "address_line_1":request.data.get('address_line_1'),
+                "address_line_2":request.data.get('address_line_2'),
+                "city":request.data.get('city'),
+                "state":request.data.get('state'),
+                "country":request.data.get('country'),
+                "pincode":request.data.get('pincode'),
+                "bank_name":request.data.get('bank_name'),
+                "bank_account":request.data.get('bank_account'),
+                "ifsc_code":request.data.get('ifsc_code'),
+                "bank_account_verified":request.data.get('bank_account_verified'),
+                "linkedin_profile":request.data.get('linkedin_profile'),
+                "mobile_number":request.data.get('mobile_number'),
+                "mobile_number_otp":"00000",
+                "mobile_number_verified":request.data.get('mobile_number_verified'),
+                "aadhaar_card_number":request.data.get('aadhaar_card_number'),
+                "aadhaar_card_verified":request.data.get('aadhaar_card_verified'),
+                "created_at":datetime.datetime.now()
+            }
+            print(data)
+            serializer = InvestorKycSerializer(data=data)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"status":"false","message":"Something Went Wrong!!"},status=status.HTTP_400_BAD_REQUEST)
+        except MyntUsers.DoesNotExist:
+            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def patch(self, request, *args, **kwargs):
+        try :
+            investor_kyc = InvestorKyc.objects.get(user_id=request.data.get('user_id'))
+            print(investor_kyc.mobile_number_otp)
+            investor_kyc.pan_card = request.data.get('pan_card')
+            investor_kyc.pan_card_verified = request.data.get('pan_card_verified')
+            investor_kyc.birth_date = request.data.get('birth_date')
+            investor_kyc.birth_month = request.data.get('birth_month')
+            investor_kyc.birth_year = request.data.get('birth_year')
+            investor_kyc.address_line_1 = request.data.get('address_line_1')
+            investor_kyc.address_line_2 = request.data.get('address_line_2')
+            investor_kyc.city = request.data.get('city')
+            investor_kyc.state = request.data.get('state')
+            investor_kyc.country = request.data.get('country')
+            investor_kyc.pincode = request.data.get('pincode')
+            investor_kyc.bank_name = request.data.get('bank_name')
+            investor_kyc.bank_account = request.data.get('bank_account')
+            investor_kyc.ifsc_code = request.data.get('ifsc_code')
+            investor_kyc.bank_account_verified = request.data.get('bank_account_verified')
+            investor_kyc.linkedin_profile = request.data.get('linkedin_profile')
+            investor_kyc.mobile_number = request.data.get('mobile_number')
+            investor_kyc.mobile_number_verified = request.data.get('mobile_number_verified')
+            investor_kyc.aadhaar_card_number = request.data.get('aadhaar_card_number')
+            investor_kyc.aadhaar_card_verified = request.data.get('aadhaar_card_verified')
+            investor_kyc.save()
+            updated_kyc = InvestorKyc.objects.get(user_id = request.data.get('user_id'))
+            serializer = InvestorKycSerializer(updated_kyc, many=False)
+            return Response({"status":"true","message":"User kyc updated successfully!","data":serializer.data}, status=status.HTTP_200_OK)
+        except InvestorKyc.DoesNotExist:
+            return Response({"status":"false","message":"Investor KYC Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)

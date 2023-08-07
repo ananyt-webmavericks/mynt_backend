@@ -34,6 +34,11 @@ class DealTermsApiView(APIView):
                 "min_subscription":request.data.get('min_subscription'),
                 "target":request.data.get('target'),
                 "end_date":request.data.get('end_date'),
+                "enable_offline":request.data.get("enable_offline"),
+                "bank_name":request.data.get("bank_name"),
+                "account_no":request.data.get("account_no"),
+                "ifsc_code":request.data.get("ifsc_code"),
+                "account_name":request.data.get("account_name"),
                 "created_at":datetime.datetime.now()
                 }
             serializer = DealTermsSerializer(data=data)
@@ -59,13 +64,13 @@ class DealTermsApiView(APIView):
             
             dealterm = DealTerms.objects.get(id = request.data.get('deal_term_id'))
 
-            if request.data.get('security_type'):
+            if request.data.get('security_type_id'):
                 deal_type = DealType.objects.filter(id=request.data.get('security_type_id')).first()
                 
                 if deal_type:
-                    dealterm.security_type = deal_type.id
+                    dealterm.security_type = DealType.objects.filter(id=request.data.get('security_type_id')).first()
                 else:
-                    return Response({"status":"false","message":"Security Type is not exists!"}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"status":"false","message":"Security Type does not exists!"}, status=status.HTTP_400_BAD_REQUEST)
 
             if request.data.get('campaign_id'):
                 campaign = Campaign.objects.filter(id=request.data.get('campaign_id')).first()
@@ -90,7 +95,11 @@ class DealTermsApiView(APIView):
                 
             if request.data.get('end_date'):
                 dealterm.end_date = request.data.get('end_date')
-            
+            dealterm.enable_offline = request.data.get("enable_offline")
+            dealterm.bank_name = request.data.get("bank_name")
+            dealterm.account_no = request.data.get("account_no")
+            dealterm.ifsc_code = request.data.get("ifsc_code")
+            dealterm.account_name = request.data.get("account_name")
             dealterm.save()
             updated_deal_term = DealTerms.objects.get(id = request.data.get('deal_term_id'))
             serializer = DealTermsSerializer(updated_deal_term, many=False)

@@ -7,7 +7,7 @@ from documents.serializers import DocumentsSerializer
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
-        fields = ["id","campaign_id","user_id","cashfree_order_id","mynt_order_id","amount","total_amount","status","payment_session_id","created_at","updated_at"]
+        fields = ["id","campaign_id","user_id","cashfree_order_id","mynt_order_id","amount","total_amount","status","payment_mode","payment_session_id","transaction_id","created_at","updated_at"]
 
 
 class InvestorCompanySerializers(serializers.ModelSerializer):
@@ -27,6 +27,4 @@ class InvestorPaymentSerializer(serializers.ModelSerializer):
     campaign_id = InvestorCampaignSerializer(read_only=True)
     class Meta:
         model = Payment
-        fields = ["id","campaign_id","user_id","cashfree_order_id",
-                  "mynt_order_id","amount","total_amount","status",
-                  "payment_session_id","created_at","updated_at"]
+        fields = ["id","campaign_id","user_id","cashfree_order_id","mynt_order_id","amount","total_amount","status","payment_mode","payment_session_id","transaction_id","created_at","updated_at"]

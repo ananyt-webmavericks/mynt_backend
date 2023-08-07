@@ -74,6 +74,7 @@ class CreateOrder(APIView):
                     payment.payment_session_id = payment_session_id
                     payment.save()
                     serializer = PaymentSerializer(payment)
+                    print(serializer)
                     return Response({"status":"true","message":"Payment Created Succesfully","data":serializer.data}, status=status.HTTP_200_OK)
                 else:
                     return Response({"status":"false","message":f"Payment Doesn't Exist for this mynt_order_id {order_id}"},status=status.HTTP_404_NOT_FOUND)
@@ -212,4 +213,86 @@ class InvestorPaymentDetailApiView(APIView):
             serializer = InvestorPaymentSerializer(payment, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OfflinePaymentDetails(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user = MyntUsers.objects.get(id = request.data.get('user_id'))
+            campaign = Campaign.objects.get(id = request.data.get('campaign_id'))
+            if campaign.status != "LIVE":
+                return Response({"status":"false","message":"Campaign is not Live anymore!"},status=status.HTTP_404_NOT_FOUND)
+            
+            investor_kyc = InvestorKyc.objects.filter(user_id = user.id).first()
+            if investor_kyc:
+                if investor_kyc.mobile_number_verified is not True and investor_kyc.bank_account_verified is not True and investor_kyc.pan_card_verified is not True and  investor_kyc.aadhaar_card_verified is not True:
+                    return Response({"status":"false","message":"Complete your KYC first."},status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({"status":"false","message":"KYC is pending."},status=status.HTTP_404_NOT_FOUND)
+            
+            payment = Payment.objects.filter(user_id=request.data.get('user_id'),campaign_id=request.data.get('campaign_id') , status="COMPLETED" ).first()
+
+            if payment:
+                return Response({"status":"false","message":"Already Invested in this Campaign!"},status=status.HTTP_400_BAD_REQUEST)
+            
+            payment = Payment.objects.filter(user_id=request.data.get('user_id'),campaign_id=request.data.get('campaign_id') , status="PENDING" ).first()
+            if payment:
+                return Response({"status":"false","message":"Please wait while we confirm the payment status!!"},status=status.HTTP_400_BAD_REQUEST)
+            
+            ms = datetime.datetime.now()
+            total_amount = request.data.get("amount")
+            order_id = str(int(time.mktime(ms.timetuple())))+'_'+user.first_name
+            data = {
+                "user_id":user.id,
+                "campaign_id":campaign.id,
+                "mynt_order_id":order_id,
+                "amount":request.data.get("amount"),
+                "total_amount":total_amount,
+                "transaction_id":request.data.get("transaction_id"),
+                "payment_mode":"OFFLINE",
+                "created_at":datetime.datetime.now(),
+                "updated_at":datetime.datetime.now(),
+            }
+            serializer = PaymentSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                user = MyntUsers.objects.filter(id=request.data.get("user_id")).first()
+                campaign = Campaign.objects.filter(id=request.data.get("campaign_id")).first()
+                company = Company.objects.filter(id=campaign.company_id.id).first()
+                context = {
+                    "investor_name":f"{user.first_name} {user.last_name}",
+                    "company_name":company.company_name,
+                    "investment_amount":total_amount
+                }
+                send_mail(template_name='offline_payment.html',context=context,email=user.email,name=f"{user.first_name} {user.last_name}",subject="Offline Payment Confirmation For Investment on Mynt",text_part=f"Offline Payment Confirmation For Investment on Mynt {user.email}")
+                payment = Payment.objects.filter(mynt_order_id=order_id).first()
+                if payment:
+                    serializer = PaymentSerializer(payment)
+                    return Response({"status":"true","message":"Payment Created Succesfully","data":serializer.data}, status=status.HTTP_200_OK)
+        except Campaign.DoesNotExist:
+            return Response({"status":"false","message":"Campaign Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except MyntUsers.DoesNotExist:
+            return Response({"status":"false","message":"User Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+class UpdateOfflinePaymentDetails(APIView):
+    permission_classes = [SafeJWTAuthentication]
+
+    def patch(self, request, payment_id):
+        try:
+            payment_details = Payment.objects.filter(id=payment_id).first()
+            payment_details.transaction_id = request.data.get("transaction_id")
+            payment_details.status = request.data.get("status")
+            payment_details.save()
+            updated_payment = Payment.objects.get(id=payment_id)
+            serializer = PaymentSerializer(updated_payment, many=False)
+            return Response({"status":"true","message":"Payment Updated Succesfully","data":serializer.data}, status=status.HTTP_200_OK)
+        except Payment.DoesNotExist:
+            return Response({"status":"false","message":"Payment Details Doesn't Exist!"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(e)
             return Response({"status":"false","message":str(e)}, status=status.HTTP_400_BAD_REQUEST)
