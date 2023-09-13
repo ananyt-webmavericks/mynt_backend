@@ -24,5 +24,7 @@ class Campaign(models.Model):
     ama_meet_link = models.TextField(null=True)
     ama_youtube_video = models.TextField(null=True)
     pitch = models.TextField(null=True)
+    total_investors = models.CharField(max_length=10,null=True)
+    total_raised = models.CharField(max_length=10,null=True)
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField(auto_now=True)

@@ -37,7 +37,7 @@ class Company(models.Model):
     cin = models.CharField(max_length=22,null=True)
     date_of_incorporation = models.DateField(null=True)
     incorporation_type = models.CharField(max_length=50,null=True)
-    sector = models.CharField(max_length=50,null=True)
+    sector = models.CharField(max_length=300,null=True)
     invested_so_far = models.CharField(max_length=12,null=True)
     number_of_employees = models.CharField(max_length = 5, null=True)
     status = models.CharField(choices=STATUS, max_length=20, default="INACTIVE")
