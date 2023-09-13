@@ -109,6 +109,12 @@ class CampaignApiView(APIView):
 
             if request.data.get('ama_youtube_video'):
                 campaign.ama_youtube_video = request.data.get('ama_youtube_video')
+            
+            if request.data.get('total_investors'):
+                campaign.total_investors = request.data.get('total_investors')
+            
+            if request.data.get('total_raised'):
+                campaign.total_investors = request.data.get('total_raised')
 
             if request.data.get('pitch'):
                 campaign.pitch = request.data.get('pitch')
