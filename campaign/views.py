@@ -114,7 +114,7 @@ class CampaignApiView(APIView):
                 campaign.total_investors = request.data.get('total_investors')
             
             if request.data.get('total_raised'):
-                campaign.total_investors = request.data.get('total_raised')
+                campaign.total_raised = request.data.get('total_raised')
 
             if request.data.get('pitch'):
                 campaign.pitch = request.data.get('pitch')
