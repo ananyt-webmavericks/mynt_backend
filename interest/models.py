@@ -14,5 +14,6 @@ class Interest(models.Model):
     investor_email = models.CharField(max_length=100,null=True)
     investor_mobile_number = models.CharField(max_length=20,null=True)
     applied_date = models.DateTimeField()
+    amount = models.CharField(max_length=10,default=0)
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField(auto_now=True)

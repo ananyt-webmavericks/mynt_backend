@@ -27,7 +27,8 @@ class CreateInterest(APIView):
                 "investor_email":request.data.get("investor_email"),
                 "investor_mobile_number":request.data.get("investor_mobile_number"),
                 "created_at":datetime.datetime.now(),
-                "investor_id":user.id
+                "investor_id":user.id,
+                "amount":request.data.get("amount")
             }
             serializer = InterestSerializer(data=data)
             if serializer.is_valid():

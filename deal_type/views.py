@@ -22,6 +22,8 @@ class DealTypeApiView(APIView):
             
             data = {
                 "deal_name":request.data.get('deal_name'),
+                "deal_description":request.data.get('deal_description'),
+                "deal_tagline":request.data.get("deal_tagline"),
                 "created_at":datetime.datetime.now()
                 }
             serializer = DealTypeSerializer(data=data)
@@ -51,6 +53,10 @@ class DealTypeApiView(APIView):
 
             if request.data.get('deal_name'):
                 deal_type.deal_name = request.data.get('deal_name')
+            if request.data.get('deal_description'):
+                deal_type.deal_description = request.data.get('deal_description')
+            if request.data.get('deal_tagline'):
+                deal_type.deal_tagline = request.data.get('deal_tagline')
             
                      
             deal_type.save()
