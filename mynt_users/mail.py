@@ -19,7 +19,7 @@ def send_mail(template_name, context, email, name, subject, text_part):
             {
             "From": {
                 "Email": env("METEOR_EMAIL"),
-                "Name": "Meteor Ventures"
+                "Name": "MYNT INVEST"
             },
             "To": [
                 {

@@ -205,7 +205,7 @@ class LoginUserByEmail(APIView):
                 context = {
                         'name' : user.first_name,
                         'otp':user.email_otp}
-                send_mail(template_name='verification.html',context=context,email=user.email,name=f"{user.first_name} {user.last_name}",subject="Verification Code",text_part=f"Verification Code {user.email}")
+                send_mail(template_name='verification.html',context=context,email=user.email,name=f"{user.first_name} {user.last_name}",subject="Your Mynt Login Code",text_part=f"Your Mynt Login Code {user.email}")
                 
                 return Response({"status":"true","message":"Please veirfy OTP on mail!"},status=status.HTTP_200_OK)
             
@@ -261,7 +261,10 @@ class MyntUserCreateApiview(APIView):
                 #Send the Welcome Email
                 context = {
                         'name' : request.data.get('first_name') }
-                send_mail(template_name='welcome_mail.html',context=context,email=request.data.get('email'),name=f"{request.data.get('first_name')} {request.data.get('last_name')}",subject="Welcome to Mynt Invest",text_part=f"Welcome to Mynt Invest {request.data.get('email')}")
+                if request.data.get('user_type') == "INVESTOR":
+                    send_mail(template_name='welcome_mail.html',context=context,email=request.data.get('email'),name=f"{request.data.get('first_name')} {request.data.get('last_name')}",subject="You're all set to explore deals! ",text_part=f"You're all set to explore deals! {request.data.get('email')}")
+                else:
+                    send_mail(template_name='founder_welcome.html',context=context,email=request.data.get('email'),name=f"{request.data.get('first_name')} {request.data.get('last_name')}",subject="Bring your innovative ideas to life! ",text_part=f"Bring your innovative ideas to life! {request.data.get('email')}")
                 
                 # If social login is True raise the token
                 if(request.data.get('social_login') is True):
@@ -276,7 +279,7 @@ class MyntUserCreateApiview(APIView):
                     context = {
                             'name' : data['first_name'],
                             'otp': data['email_otp']}
-                    send_mail(template_name='verification.html',context=context,email=data['email'],name=f"{data['first_name']} {data['last_name']}",subject="Verification Code",text_part=f"Verification Code {data['email']}")
+                    send_mail(template_name='verification.html',context=context,email=data['email'],name=f"{data['first_name']} {data['last_name']}",subject="Your Mynt Login Code",text_part=f"Your Mynt Login Code {data['email']}")
                 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
