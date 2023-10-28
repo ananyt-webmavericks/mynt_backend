@@ -17,6 +17,9 @@ from django.contrib.auth.hashers import check_password, make_password
 from .mail import send_mail
 from payment.models import Payment
 from documents.models import Documents
+from django.core import serializers
+from django.http import JsonResponse
+from campaign_documents.models import CampaignDocument
 
 class MyntUsersApiView(APIView):
     permission_classes = [SafeJWTAuthentication]
@@ -305,14 +308,23 @@ class GetUserPortfolio(APIView):
         try:
             user = MyntUsers.objects.get(id=id)
             payments = Payment.objects.filter(user_id=user.id , status = "COMPLETED")
+            # documents = 
             data = []
             for payment in payments:
+                documents = []
+                company_document = Documents.objects.filter(company_id=payment.campaign_id.company_id,document_type="DOCUMENTS")
+                document_data = serializers.serialize("json", company_document)
+                documents.append(document_data)
+                agreement_campaign = CampaignDocument.objects.filter(campaign_id=payment.campaign_id,user_id=user.id)
+                agreement_data = serializers.serialize("json", agreement_campaign)
+                documents.append(agreement_data)
+                print(agreement_campaign)
                 result = {
                     "company_logo":payment.campaign_id.company_id.company_logo,
                     "company_name":payment.campaign_id.company_id.company_name,
                     "amount":payment.amount,
                     "enrollment_date":payment.updated_at,
-                    "documents":[]
+                    "documents":documents
                 }
                 data.append(result)
             result = {

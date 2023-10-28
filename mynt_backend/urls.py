@@ -37,6 +37,7 @@ urlpatterns = [
     path('api/documents/',include("documents.urls")),
     path('api/payment/',include("payment.urls")),
     path('api/interest/',include("interest.urls")),
+    path('api/campaign-document/',include("campaign_documents.urls")),
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
 

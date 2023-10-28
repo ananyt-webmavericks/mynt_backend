@@ -59,7 +59,8 @@ INSTALLED_APPS = [
     'rewards',
     'deal_type',
     'payment',
-    'interest'
+    'interest',
+    'campaign_documents'
 ]
 
 REST_FRAMEWORK = {
